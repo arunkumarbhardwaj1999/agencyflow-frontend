@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
+  UserCog,
   Kanban,
   FolderKanban,
   Receipt,
@@ -18,7 +19,7 @@ import { useAuthStore } from "@/stores/auth-store";
 
 type NavItem = { href: string; label: string; icon: React.ComponentType<{ className?: string }> };
 
-const navGroups: { title: string; items: NavItem[] }[] = [
+const navGroupsBase: { title: string; items: NavItem[] }[] = [
   {
     title: "Overview",
     items: [{ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }],
@@ -57,6 +58,13 @@ export function AppSidebar() {
     useAuthStore.getState().setUser(null);
     router.push("/login");
   }
+
+  const navGroups = user?.role === "owner"
+    ? [
+        { title: "Overview", items: [...navGroupsBase[0].items, { href: "/team", label: "Team", icon: UserCog }] },
+        ...navGroupsBase.slice(1),
+      ]
+    : navGroupsBase;
 
   return (
     <aside className="flex h-screen w-60 shrink-0 flex-col border-r border-slate-200 bg-white">

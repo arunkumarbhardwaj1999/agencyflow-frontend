@@ -12,6 +12,7 @@ import type { User } from "@/lib/types";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
+  "/team": "Team",
   "/leads": "Leads",
   "/clients": "Clients",
   "/projects": "Projects",

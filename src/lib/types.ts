@@ -17,6 +17,24 @@ export type TokenResponse = {
   token_type: string;
 };
 
+export type ForgotPasswordResponse = {
+  message: string;
+  reset_token: string | null;
+};
+
+export type StaffMember = {
+  id: string;
+  company_id: string | null;
+  first_name: string;
+  last_name: string | null;
+  email: string;
+  phone: string | null;
+  role: "owner" | "manager" | "employee" | "client";
+  is_active: boolean;
+  is_verified: boolean;
+  created_at: string;
+};
+
 export type Lead = {
   id: string;
   company_id: string;
