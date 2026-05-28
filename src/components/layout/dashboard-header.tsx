@@ -12,7 +12,7 @@ export function DashboardHeader({
   showNewLead?: boolean;
 }) {
   return (
-    <header className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-white pb-5">
+    <header className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-blue-100 pb-5">
       <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
       <div className="flex items-center gap-2">
         <button

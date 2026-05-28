@@ -40,7 +40,7 @@ function LeadCard({ lead, onConvert }: { lead: Lead; onConvert?: () => void }) {
     >
       <p className="font-medium text-slate-900">{lead.name}</p>
       {lead.company_name && <p className="text-xs text-slate-500">{lead.company_name}</p>}
-      <p className="mt-2 text-sm font-semibold text-indigo-600">{formatCurrency(lead.value)}</p>
+      <p className="mt-2 text-sm font-semibold text-blue-600">{formatCurrency(lead.value)}</p>
       {onConvert && (
         <Button
           type="button"
@@ -75,7 +75,7 @@ function Column({
   return (
     <div
       ref={setNodeRef}
-      className={`flex min-h-[420px] w-72 shrink-0 flex-col rounded-xl border bg-slate-100/80 p-3 ${isOver ? "ring-2 ring-indigo-400" : "border-slate-200"}`}
+      className={`flex min-h-[420px] w-72 shrink-0 flex-col rounded-xl border bg-blue-50/50 p-3 ${isOver ? "ring-2 ring-blue-400" : "border-slate-200"}`}
     >
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-sm font-semibold text-slate-700">{title}</h3>

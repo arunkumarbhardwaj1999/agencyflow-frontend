@@ -62,9 +62,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
+    <div className="flex h-screen overflow-hidden bg-white">
       <AppSidebar />
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto bg-white">
         <div className="mx-auto max-w-7xl px-6 py-6">
           <DashboardHeader title={title} showNewLead={pathname === "/dashboard"} />
           {children}
