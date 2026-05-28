@@ -24,7 +24,12 @@ const schema = z.object({
   last_name: z.string().optional(),
   email: z.string().email(),
   password: z.string().min(8),
-  gst_number: z.string().optional(),
+  gst_number: z
+    .string()
+    .trim()
+    .max(15, "GSTIN must be at most 15 characters")
+    .optional()
+    .or(z.literal("")),
 });
 
 export function RegisterForm() {
@@ -34,11 +39,17 @@ export function RegisterForm() {
   });
 
   const mutation = useMutation({
-    mutationFn: (body: z.infer<typeof schema>) =>
-      apiFetch<TokenResponse>("/auth/register", {
+    mutationFn: (body: z.infer<typeof schema>) => {
+      const { gst_number, ...rest } = body;
+      const payload = {
+        ...rest,
+        ...(gst_number?.trim() ? { gst_number: gst_number.trim().toUpperCase() } : {}),
+      };
+      return apiFetch<TokenResponse>("/auth/register", {
         method: "POST",
-        body: JSON.stringify(body),
-      }),
+        body: JSON.stringify(payload),
+      });
+    },
     onSuccess: (data) => {
       setTokens(data.access_token, data.refresh_token);
       router.push("/dashboard");
@@ -78,7 +89,14 @@ export function RegisterForm() {
       </div>
       <div className="sm:col-span-2">
         <Label>GSTIN (optional)</Label>
-        <Input {...register("gst_number")} placeholder="22AAAAA0000A1Z5" />
+        <Input
+          {...register("gst_number")}
+          placeholder="22AAAAA0000A1Z5"
+          maxLength={15}
+        />
+        {errors.gst_number && (
+          <p className="text-xs text-red-500">{errors.gst_number.message}</p>
+        )}
       </div>
       {mutation.isError && (
         <p className="sm:col-span-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">

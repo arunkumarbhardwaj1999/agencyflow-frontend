@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import {
   Bar,
@@ -13,7 +15,8 @@ import {
 import { format, formatDistanceToNow } from "date-fns";
 import { Clock, UserPlus } from "lucide-react";
 import { apiFetch } from "@/lib/api";
-import type { DashboardData, Lead } from "@/lib/types";
+import { getAccessToken } from "@/lib/auth";
+import type { DashboardData, DashboardLiveEvent, Lead } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -68,6 +71,8 @@ function formatDueLabel(dueAt: string) {
 export function DashboardView() {
   const user = useAuthStore((s) => s.user);
   const isOwner = user?.role === "owner";
+  const queryClient = useQueryClient();
+  const [liveEvents, setLiveEvents] = useState<DashboardLiveEvent[]>([]);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["dashboard"],
@@ -80,6 +85,35 @@ export function DashboardView() {
     queryFn: () => apiFetch<Lead[]>("/leads"),
     enabled: !isOwner,
   });
+
+  useEffect(() => {
+    if (!isOwner || !user?.company_id) return;
+    const token = getAccessToken();
+    if (!token) return;
+    const apiBase = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1").replace("/api/v1", "");
+    const wsBase = apiBase.startsWith("https://")
+      ? apiBase.replace("https://", "wss://")
+      : apiBase.replace("http://", "ws://");
+    const ws = new WebSocket(
+      `${wsBase}/ws/dashboard/${user.company_id}?token=${encodeURIComponent(token)}`,
+    );
+
+    ws.onmessage = (event) => {
+      try {
+        const parsed = JSON.parse(event.data) as DashboardLiveEvent;
+        setLiveEvents((prev) => [parsed, ...prev].slice(0, 8));
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      } catch {
+        // ignore malformed websocket event
+      }
+    };
+
+    ws.onerror = () => {
+      // ignore and keep dashboard usable without live channel
+    };
+
+    return () => ws.close();
+  }, [isOwner, user?.company_id, queryClient]);
 
   if (!isOwner) {
     const pipeline = leads.filter((l) => !["won", "lost"].includes(l.status));
@@ -115,6 +149,12 @@ export function DashboardView() {
   ];
 
   const followUpCount = Math.min(data.kpis.open_leads, 12);
+  const allActivity = [...liveEvents, ...data.recent_activity];
+  const dedupActivity = new Map<string, { id: string; type: string; message: string; created_at: string }>();
+  for (const item of allActivity) dedupActivity.set(item.id, item);
+  const mergedActivity = Array.from(dedupActivity.values())
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 8);
 
   return (
     <div className="space-y-6">
@@ -200,7 +240,7 @@ export function DashboardView() {
         </CardHeader>
         <CardContent className="pt-0">
           <ul className="divide-y divide-slate-100">
-            {data.recent_activity.map((a) => (
+            {mergedActivity.map((a) => (
               <li key={a.id} className="flex items-center gap-4 py-3.5">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
                   {a.type === "lead" ? <UserPlus className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
@@ -224,7 +264,7 @@ export function DashboardView() {
                 </Badge>
               </li>
             ))}
-            {data.recent_activity.length === 0 && (
+            {mergedActivity.length === 0 && (
               <li className="py-4 text-sm text-slate-500">No recent activity</li>
             )}
           </ul>

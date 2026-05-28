@@ -19,6 +19,7 @@ const schema = z.object({
 
 export default function ForgotPasswordPage() {
   const [token, setToken] = useState<string | null>(null);
+  const [accountEmail, setAccountEmail] = useState<string | null>(null);
   const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
   });
@@ -29,7 +30,10 @@ export default function ForgotPasswordPage() {
         method: "POST",
         body: JSON.stringify(body),
       }),
-    onSuccess: (data) => setToken(data.reset_token),
+    onSuccess: (data) => {
+      setToken(data.reset_token);
+      setAccountEmail(data.email);
+    },
   });
 
   return (
@@ -46,8 +50,15 @@ export default function ForgotPasswordPage() {
           {mutation.isError && <p className="text-sm text-red-600">{(mutation.error as Error).message}</p>}
           {mutation.isSuccess && (
             <div className="rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-700">
-              Token generated. Copy and use it on reset page.
-              {token && <p className="mt-1 break-all font-mono text-xs">{token}</p>}
+              {accountEmail ? (
+                <p>
+                  Token created for <strong>{accountEmail}</strong>. Use this same email to log in
+                  after reset.
+                </p>
+              ) : (
+                <p>If that email is registered, a token was created. Check the email you entered.</p>
+              )}
+              {token && <p className="mt-2 break-all font-mono text-xs">{token}</p>}
             </div>
           )}
           <Button type="submit" className="w-full" disabled={mutation.isPending}>
@@ -55,7 +66,14 @@ export default function ForgotPasswordPage() {
           </Button>
         </form>
         <p className="mt-4 text-sm">
-          <Link href="/reset-password" className="text-blue-600 hover:underline">
+          <Link
+            href={
+              token
+                ? `/reset-password?token=${encodeURIComponent(token)}${accountEmail ? `&email=${encodeURIComponent(accountEmail)}` : ""}`
+                : "/reset-password"
+            }
+            className="text-blue-600 hover:underline"
+          >
             Go to reset password
           </Link>
         </p>

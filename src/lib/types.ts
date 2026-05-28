@@ -20,6 +20,7 @@ export type TokenResponse = {
 export type ForgotPasswordResponse = {
   message: string;
   reset_token: string | null;
+  email: string | null;
 };
 
 export type StaffMember = {
@@ -117,6 +118,28 @@ export type DashboardData = {
     message: string;
     created_at: string;
   }[];
+};
+
+export type DashboardLiveEvent = {
+  id: string;
+  type: "lead" | "project" | "task" | "client" | "invoice";
+  message: string;
+  created_at: string;
+};
+
+export type Invoice = {
+  id: string;
+  company_id: string;
+  client_id: string;
+  client_name: string | null;
+  invoice_number: string;
+  subtotal: string;
+  tax: string;
+  total: string;
+  status: string;
+  due_date: string;
+  payment_link: string | null;
+  created_at: string;
 };
 
 export const LEAD_COLUMNS = [

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -20,8 +20,11 @@ const schema = z.object({
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const emailFromUrl = searchParams.get("email")?.trim() ?? "";
   const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
+    defaultValues: { email: emailFromUrl },
   });
 
   const mutation = useMutation({

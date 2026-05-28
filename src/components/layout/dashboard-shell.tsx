@@ -17,6 +17,7 @@ const pageTitles: Record<string, string> = {
   "/clients": "Clients",
   "/projects": "Projects",
   "/finance": "Finance",
+  "/portal": "Client portal",
 };
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
@@ -36,9 +37,16 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       router.replace("/login");
       return;
     }
-    if (data) setUser(data);
+    if (data) {
+      setUser(data);
+      if (data.role === "client" && !pathname.startsWith("/portal")) {
+        router.replace("/portal");
+      } else if (data.role !== "client" && pathname.startsWith("/portal")) {
+        router.replace("/dashboard");
+      }
+    }
     if (isError) router.replace("/login");
-  }, [data, isError, router, setUser]);
+  }, [data, isError, router, setUser, pathname]);
 
   const title = pageTitles[pathname] ?? "AgencyFlow";
 

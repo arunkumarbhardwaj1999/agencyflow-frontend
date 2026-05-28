@@ -59,12 +59,20 @@ export function AppSidebar() {
     router.push("/login");
   }
 
-  const navGroups = user?.role === "owner"
-    ? [
-        { title: "Overview", items: [...navGroupsBase[0].items, { href: "/team", label: "Team", icon: UserCog }] },
-        ...navGroupsBase.slice(1),
-      ]
-    : navGroupsBase;
+  const navGroups =
+    user?.role === "client"
+      ? [{ title: "Portal", items: [{ href: "/portal", label: "My portal", icon: LayoutDashboard }] }]
+      : user?.role === "owner"
+        ? [
+            {
+              title: "Overview",
+              items: [...navGroupsBase[0].items, { href: "/team", label: "Team", icon: UserCog }],
+            },
+            ...navGroupsBase.slice(1),
+          ]
+        : user?.role === "employee"
+          ? navGroupsBase.filter((g) => g.title !== "Finance" && g.title !== "Sales")
+          : navGroupsBase;
 
   return (
     <aside className="flex h-screen w-60 shrink-0 flex-col border-r border-slate-200 bg-white">

@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LeadFormDialog } from "./lead-form-dialog";
 
-function LeadCard({ lead }: { lead: Lead }) {
+function LeadCard({ lead, onConvert }: { lead: Lead; onConvert?: () => void }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: lead.id,
     data: { lead },
@@ -41,11 +41,36 @@ function LeadCard({ lead }: { lead: Lead }) {
       <p className="font-medium text-slate-900">{lead.name}</p>
       {lead.company_name && <p className="text-xs text-slate-500">{lead.company_name}</p>}
       <p className="mt-2 text-sm font-semibold text-indigo-600">{formatCurrency(lead.value)}</p>
+      {onConvert && (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="mt-2 w-full"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            onConvert();
+          }}
+        >
+          Convert to client
+        </Button>
+      )}
     </div>
   );
 }
 
-function Column({ status, title, leads }: { status: string; title: string; leads: Lead[] }) {
+function Column({
+  status,
+  title,
+  leads,
+  onConvertLead,
+}: {
+  status: string;
+  title: string;
+  leads: Lead[];
+  onConvertLead?: (lead: Lead) => void;
+}) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
   return (
     <div
@@ -58,7 +83,11 @@ function Column({ status, title, leads }: { status: string; title: string; leads
       </div>
       <div className="flex flex-1 flex-col gap-2">
         {leads.map((lead) => (
-          <LeadCard key={lead.id} lead={lead} />
+          <LeadCard
+            key={lead.id}
+            lead={lead}
+            onConvert={status === "won" && onConvertLead ? () => onConvertLead(lead) : undefined}
+          />
         ))}
       </div>
     </div>
@@ -82,6 +111,15 @@ export function LeadsKanban() {
         body: JSON.stringify({ status }),
       }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["leads"] }),
+  });
+
+  const convertMutation = useMutation({
+    mutationFn: (id: string) =>
+      apiFetch(`/leads/${id}/convert`, { method: "POST" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+    },
   });
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
@@ -124,6 +162,7 @@ export function LeadsKanban() {
               status={col.id}
               title={col.title}
               leads={leads.filter((l) => l.status === col.id)}
+              onConvertLead={(lead) => convertMutation.mutate(lead.id)}
             />
           ))}
         </div>
