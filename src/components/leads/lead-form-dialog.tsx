@@ -17,8 +17,9 @@ const schema = z.object({
   phone: z.string().optional(),
   company_name: z.string().optional(),
   source: z.string().optional(),
-  value: z.number().min(0),
+  value: z.string().min(1, "Enter amount"),
   notes: z.string().optional(),
+  next_followup: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -33,19 +34,28 @@ export function LeadFormDialog({
   const queryClient = useQueryClient();
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { value: 0 },
+    defaultValues: { value: "0" },
   });
 
   const mutation = useMutation({
-    mutationFn: (data: FormData) =>
-      apiFetch<Lead>("/leads", {
+    mutationFn: (data: FormData) => {
+      const value = parseFloat(data.value);
+      if (Number.isNaN(value) || value < 0) {
+        throw new Error("Enter a valid amount");
+      }
+      return apiFetch<Lead>("/leads", {
         method: "POST",
         body: JSON.stringify({
           ...data,
+          value,
           email: data.email || null,
           status: "new",
+          next_followup: data.next_followup
+            ? new Date(data.next_followup).toISOString()
+            : null,
         }),
-      }),
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leads"] });
       reset();
@@ -86,7 +96,13 @@ export function LeadFormDialog({
           </div>
           <div>
             <Label>Value (₹)</Label>
-            <Input type="number" {...register("value")} />
+            <Input type="number" step="0.01" {...register("value")} placeholder="0" />
+            {errors.value && <p className="text-xs text-red-500">{errors.value.message}</p>}
+          </div>
+          <div>
+            <Label>Next follow-up</Label>
+            <Input type="datetime-local" {...register("next_followup")} />
+            <p className="mt-1 text-xs text-slate-500">Optional — next call or meeting</p>
           </div>
           <div>
             <Label>Notes</Label>

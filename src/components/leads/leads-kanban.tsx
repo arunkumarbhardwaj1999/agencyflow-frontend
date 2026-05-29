@@ -14,6 +14,7 @@ import {
 import { useDroppable } from "@dnd-kit/core";
 import { useDraggable } from "@dnd-kit/core";
 import { useState } from "react";
+import { format, isPast, isToday } from "date-fns";
 import { apiFetch } from "@/lib/api";
 import { LEAD_COLUMNS, type Lead } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
@@ -21,7 +22,30 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LeadFormDialog } from "./lead-form-dialog";
 
+function followupLabel(iso: string | null): { text: string; className: string } | null {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  if (isToday(date)) {
+    return {
+      text: `Follow-up today · ${format(date, "h:mm a")}`,
+      className: "text-amber-600",
+    };
+  }
+  if (isPast(date)) {
+    return {
+      text: `Follow-up: ${format(date, "dd MMM yyyy")} (overdue)`,
+      className: "text-red-600",
+    };
+  }
+  return {
+    text: `Follow-up: ${format(date, "dd MMM yyyy, h:mm a")}`,
+    className: "text-slate-500",
+  };
+}
+
 function LeadCard({ lead, onConvert }: { lead: Lead; onConvert?: () => void }) {
+  const followup = followupLabel(lead.next_followup);
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: lead.id,
     data: { lead },
@@ -41,6 +65,7 @@ function LeadCard({ lead, onConvert }: { lead: Lead; onConvert?: () => void }) {
       <p className="font-medium text-slate-900">{lead.name}</p>
       {lead.company_name && <p className="text-xs text-slate-500">{lead.company_name}</p>}
       <p className="mt-2 text-sm font-semibold text-blue-600">{formatCurrency(lead.value)}</p>
+      {followup && <p className={`mt-1 text-xs ${followup.className}`}>{followup.text}</p>}
       {onConvert && (
         <Button
           type="button"
@@ -148,6 +173,12 @@ export function LeadsKanban() {
         </div>
         <Button onClick={() => setFormOpen(true)}>Add Lead</Button>
       </div>
+
+      {(updateMutation.isError || convertMutation.isError) && (
+        <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+          {((updateMutation.error ?? convertMutation.error) as Error).message}
+        </p>
+      )}
 
       <DndContext
         sensors={sensors}
