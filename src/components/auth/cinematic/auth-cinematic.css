@@ -5,8 +5,9 @@
   --auth-accent-dim: #8b5cf6;
   --auth-bg: #f3f5fb;
   --auth-surface: #ffffff;
-  --auth-ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --auth-duration: 800ms;
+  /* smoother, more cinematic easing (easeInOutQuart) */
+  --auth-ease: cubic-bezier(0.76, 0, 0.24, 1);
+  --auth-duration: 950ms;
 }
 
 /* ---------- Background ---------- */
@@ -61,10 +62,11 @@
   bottom: 0;
   width: 50%;
   z-index: 1;
+  /* sweeps across after the outgoing fields begin sliding out */
   transition:
-    left var(--auth-duration) var(--auth-ease),
-    right var(--auth-duration) var(--auth-ease),
-    clip-path var(--auth-duration) var(--auth-ease);
+    left 0.75s var(--auth-ease) 0.15s,
+    right 0.75s var(--auth-ease) 0.15s,
+    clip-path 0.75s var(--auth-ease) 0.15s;
   will-change: clip-path, left, right;
 }
 
@@ -85,10 +87,17 @@
 .auth-diagonal-panel__inner {
   height: 100%;
   background: linear-gradient(135deg, #6366f1 0%, #7c3aed 50%, #4f46e5 100%);
+  background-size: 200% 200%;
+  animation: auth-panel-shimmer 14s ease-in-out infinite;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2.5rem;
+  padding: 3rem;
+}
+
+@keyframes auth-panel-shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 .auth-diagonal-panel__glow {
@@ -127,10 +136,8 @@
   display: flex;
   align-items: center;
   padding: 2rem 3rem;
-  transition:
-    opacity var(--auth-duration) var(--auth-ease),
-    transform var(--auth-duration) var(--auth-ease);
-  will-change: opacity, transform;
+  transition: opacity 0.45s var(--auth-ease);
+  will-change: opacity;
 }
 
 /* push content to the outer edge so the diagonal panel never overlaps it */
@@ -148,30 +155,114 @@
 
 .auth-form-side--active {
   opacity: 1;
-  transform: translateX(0) scale(1);
   pointer-events: auto;
+  /* wait for old fields to leave + panel to sweep before fading in */
+  transition-delay: 0.5s;
 }
 
-.auth-form-side--exit-left {
-  opacity: 0;
-  transform: translateX(-48px) scale(0.97);
-  pointer-events: none;
-}
-
+.auth-form-side--exit-left,
 .auth-form-side--exit-right {
   opacity: 0;
-  transform: translateX(48px) scale(0.97);
   pointer-events: none;
+  transition-delay: 0.35s;
 }
 
-.auth-form-side--enter-from-right {
-  opacity: 0;
-  transform: translateX(48px) scale(0.97);
+/*
+ * Choreographed field motion:
+ *   1. outgoing form fields slide out (staggered, 0–0.45s)
+ *   2. diagonal panel sweeps across (0.15–0.9s, see panel transition-delay)
+ *   3. incoming form fields slide in (staggered, from 0.55s)
+ */
+.auth-form-side--active form > *,
+.auth-form-side--active form .grid > * {
+  animation: auth-field-rise 0.6s var(--auth-ease) backwards;
 }
 
-.auth-form-side--enter-from-left {
-  opacity: 0;
-  transform: translateX(-48px) scale(0.97);
+.auth-form-side--exit-left form > *,
+.auth-form-side--exit-left form .grid > *,
+.auth-form-side--exit-right form > *,
+.auth-form-side--exit-right form .grid > * {
+  animation: auth-field-fall 0.45s var(--auth-ease) forwards;
+}
+
+/* incoming stagger on first page load — quick, no panel to wait for */
+.auth-form-side--active form > *:nth-child(1),
+.auth-form-side--active form .grid > *:nth-child(1) { animation-delay: 0.08s; }
+.auth-form-side--active form > *:nth-child(2),
+.auth-form-side--active form .grid > *:nth-child(2) { animation-delay: 0.14s; }
+.auth-form-side--active form > *:nth-child(3),
+.auth-form-side--active form .grid > *:nth-child(3) { animation-delay: 0.20s; }
+.auth-form-side--active form > *:nth-child(4),
+.auth-form-side--active form .grid > *:nth-child(4) { animation-delay: 0.26s; }
+.auth-form-side--active form > *:nth-child(5),
+.auth-form-side--active form .grid > *:nth-child(5) { animation-delay: 0.32s; }
+.auth-form-side--active form > *:nth-child(6),
+.auth-form-side--active form .grid > *:nth-child(6) { animation-delay: 0.38s; }
+.auth-form-side--active form > *:nth-child(n + 7),
+.auth-form-side--active form .grid > *:nth-child(n + 7) { animation-delay: 0.44s; }
+
+/* incoming stagger during a mode switch — waits for the panel sweep */
+.is-switching .auth-form-side--active form > *:nth-child(1),
+.is-switching .auth-form-side--active form .grid > *:nth-child(1) { animation-delay: 0.55s; }
+.is-switching .auth-form-side--active form > *:nth-child(2),
+.is-switching .auth-form-side--active form .grid > *:nth-child(2) { animation-delay: 0.61s; }
+.is-switching .auth-form-side--active form > *:nth-child(3),
+.is-switching .auth-form-side--active form .grid > *:nth-child(3) { animation-delay: 0.67s; }
+.is-switching .auth-form-side--active form > *:nth-child(4),
+.is-switching .auth-form-side--active form .grid > *:nth-child(4) { animation-delay: 0.73s; }
+.is-switching .auth-form-side--active form > *:nth-child(5),
+.is-switching .auth-form-side--active form .grid > *:nth-child(5) { animation-delay: 0.79s; }
+.is-switching .auth-form-side--active form > *:nth-child(6),
+.is-switching .auth-form-side--active form .grid > *:nth-child(6) { animation-delay: 0.85s; }
+.is-switching .auth-form-side--active form > *:nth-child(n + 7),
+.is-switching .auth-form-side--active form .grid > *:nth-child(n + 7) { animation-delay: 0.91s; }
+
+/* outgoing stagger — leaves immediately, top to bottom */
+.auth-form-side--exit-left form > *:nth-child(1),
+.auth-form-side--exit-left form .grid > *:nth-child(1),
+.auth-form-side--exit-right form > *:nth-child(1),
+.auth-form-side--exit-right form .grid > *:nth-child(1) { animation-delay: 0s; }
+.auth-form-side--exit-left form > *:nth-child(2),
+.auth-form-side--exit-left form .grid > *:nth-child(2),
+.auth-form-side--exit-right form > *:nth-child(2),
+.auth-form-side--exit-right form .grid > *:nth-child(2) { animation-delay: 0.04s; }
+.auth-form-side--exit-left form > *:nth-child(3),
+.auth-form-side--exit-left form .grid > *:nth-child(3),
+.auth-form-side--exit-right form > *:nth-child(3),
+.auth-form-side--exit-right form .grid > *:nth-child(3) { animation-delay: 0.08s; }
+.auth-form-side--exit-left form > *:nth-child(4),
+.auth-form-side--exit-left form .grid > *:nth-child(4),
+.auth-form-side--exit-right form > *:nth-child(4),
+.auth-form-side--exit-right form .grid > *:nth-child(4) { animation-delay: 0.12s; }
+.auth-form-side--exit-left form > *:nth-child(5),
+.auth-form-side--exit-left form .grid > *:nth-child(5),
+.auth-form-side--exit-right form > *:nth-child(5),
+.auth-form-side--exit-right form .grid > *:nth-child(5) { animation-delay: 0.16s; }
+.auth-form-side--exit-left form > *:nth-child(n + 6),
+.auth-form-side--exit-left form .grid > *:nth-child(n + 6),
+.auth-form-side--exit-right form > *:nth-child(n + 6),
+.auth-form-side--exit-right form .grid > *:nth-child(n + 6) { animation-delay: 0.2s; }
+
+@keyframes auth-field-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes auth-field-fall {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
 }
 
 /* ---------- Auth inputs ---------- */
@@ -180,26 +271,51 @@
   border: none;
   border-bottom: 1.5px solid rgba(100, 116, 139, 0.3);
   background: transparent;
-  padding: 0.65rem 2rem 0.65rem 0;
+  padding: 0.65rem 2rem 0.7rem 0;
   font-size: 0.9375rem;
   color: #0f172a;
   outline: none;
   transition:
-    border-color 0.3s ease,
-    box-shadow 0.3s ease;
+    border-color 0.35s var(--auth-ease),
+    box-shadow 0.35s var(--auth-ease),
+    background 0.35s var(--auth-ease);
 }
 
 .auth-field-input::placeholder {
   color: rgba(100, 116, 139, 0.55);
+  transition: color 0.35s var(--auth-ease);
 }
 
 .auth-field-input:focus {
   border-color: var(--auth-accent);
-  box-shadow: 0 6px 18px -10px rgba(99, 102, 241, 0.5);
+  box-shadow: 0 8px 22px -12px rgba(99, 102, 241, 0.55);
+  background: rgba(99, 102, 241, 0.03);
+}
+
+.auth-field-input:focus::placeholder {
+  color: rgba(99, 102, 241, 0.45);
 }
 
 .auth-field-wrap {
   position: relative;
+}
+
+/* animated underline glow that grows from the left on focus */
+.auth-field-wrap::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -1.5px;
+  height: 1.5px;
+  width: 100%;
+  background: linear-gradient(90deg, var(--auth-accent), var(--auth-accent-dim));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s var(--auth-ease);
+}
+
+.auth-field-wrap:focus-within::after {
+  transform: scaleX(1);
 }
 
 .auth-field-icon {
@@ -209,6 +325,12 @@
   transform: translateY(-50%);
   color: rgba(99, 102, 241, 0.75);
   pointer-events: none;
+  transition: color 0.35s var(--auth-ease), transform 0.35s var(--auth-ease);
+}
+
+.auth-field-wrap:focus-within .auth-field-icon {
+  color: var(--auth-accent);
+  transform: translateY(-50%) scale(1.12);
 }
 
 .auth-field-label {
@@ -368,7 +490,14 @@
   .auth-form-side,
   .auth-welcome-text,
   .auth-particle,
-  .auth-bg-orb {
+  .auth-bg-orb,
+  .auth-diagonal-panel__inner,
+  .auth-form-side--active form > *,
+  .auth-form-side--active form .grid > *,
+  .auth-form-side--exit-left form > *,
+  .auth-form-side--exit-left form .grid > *,
+  .auth-form-side--exit-right form > *,
+  .auth-form-side--exit-right form .grid > * {
     transition: none !important;
     animation: none !important;
   }

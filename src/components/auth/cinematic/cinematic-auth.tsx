@@ -29,7 +29,7 @@ export function CinematicAuth({
 
   useEffect(() => {
     if (!transitioning) return;
-    const t = window.setTimeout(() => setTransitioning(false), 850);
+    const t = window.setTimeout(() => setTransitioning(false), 1550);
     return () => window.clearTimeout(t);
   }, [transitioning]);
 
@@ -47,7 +47,12 @@ export function CinematicAuth({
         <span className="text-sm font-semibold tracking-tight">AgencyFlow</span>
       </Link>
 
-      <div className="auth-card relative z-10 flex h-[min(720px,92vh)] w-full max-w-[1080px] flex-col md:block">
+      <div
+        className={cn(
+          "auth-card relative z-10 flex h-[min(820px,94vh)] w-full max-w-[1240px] flex-col md:block",
+          transitioning && "is-switching",
+        )}
+      >
         <div
           className={cn(
             "pointer-events-none absolute inset-0 z-[5] transition-opacity duration-500",
@@ -104,8 +109,8 @@ export function CinematicAuth({
             isLogin ? "auth-form-side--active" : "auth-form-side--exit-left",
           )}
         >
-          <div className="w-full max-w-sm">
-            <h1 className="mb-1 text-3xl font-bold text-slate-900">Login</h1>
+          <div className="w-full max-w-md">
+            <h1 className="mb-1 text-4xl font-bold text-slate-900">Login</h1>
             <p className="mb-8 text-sm text-slate-500">Sign in to your workspace</p>
             <Suspense fallback={<div className="h-48 animate-pulse rounded-xl bg-white/5" />}>
               <CinematicLoginForm onSwitchToRegister={() => switchMode("register")} />
@@ -119,8 +124,8 @@ export function CinematicAuth({
             !isLogin ? "auth-form-side--active" : "auth-form-side--exit-right",
           )}
         >
-          <div className="w-full max-w-md">
-            <h1 className="mb-1 text-3xl font-bold text-slate-900">Register</h1>
+          <div className="w-full max-w-lg">
+            <h1 className="mb-1 text-4xl font-bold text-slate-900">Register</h1>
             <p className="mb-6 text-sm text-slate-500">Create your agency workspace</p>
             <CinematicRegisterForm onSwitchToLogin={() => switchMode("login")} />
           </div>
