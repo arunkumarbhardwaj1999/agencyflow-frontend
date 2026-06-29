@@ -1,20 +1,21 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AuthShell } from "./auth-shell";
-import { LoginForm } from "./login-form";
-import { RegisterForm } from "./register-form";
+import { CinematicAuth } from "./cinematic/cinematic-auth";
 
 export function AuthPage({ initialMode }: { initialMode: "login" | "register" }) {
   const router = useRouter();
+  const [mode, setMode] = useState<"login" | "register">(initialMode);
 
-  function handleModeChange(mode: "login" | "register") {
-    router.push(mode === "login" ? "/login" : "/register");
+  useEffect(() => {
+    setMode(initialMode);
+  }, [initialMode]);
+
+  function handleModeChange(next: "login" | "register") {
+    setMode(next);
+    router.replace(next === "login" ? "/login" : "/register", { scroll: false });
   }
 
-  return (
-    <AuthShell mode={initialMode} onModeChange={handleModeChange}>
-      {initialMode === "login" ? <LoginForm /> : <RegisterForm />}
-    </AuthShell>
-  );
+  return <CinematicAuth mode={mode} onModeChange={handleModeChange} />;
 }

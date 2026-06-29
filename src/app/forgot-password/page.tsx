@@ -50,7 +50,7 @@ export default function ForgotPasswordPage() {
         </div>
         {mutation.isError && <p className="text-sm text-red-600">{(mutation.error as Error).message}</p>}
         {mutation.isSuccess && (
-          <div className="rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-700">
+          <div className="rounded-lg bg-indigo-50 px-3 py-2 text-sm text-indigo-700">
             {accountEmail ? (
               <p>
                 Token created for <strong>{accountEmail}</strong>. Use this same email to log in after reset.
@@ -72,12 +72,12 @@ export default function ForgotPasswordPage() {
               ? `/reset-password?token=${encodeURIComponent(token)}${accountEmail ? `&email=${encodeURIComponent(accountEmail)}` : ""}`
               : "/reset-password"
           }
-          className="text-blue-600 hover:underline"
+          className="text-indigo-600 hover:underline"
         >
           Go to reset password
         </Link>
         {" · "}
-        <Link href="/login" className="text-blue-600 hover:underline">
+        <Link href="/login" className="text-indigo-600 hover:underline">
           Back to sign in
         </Link>
       </p>

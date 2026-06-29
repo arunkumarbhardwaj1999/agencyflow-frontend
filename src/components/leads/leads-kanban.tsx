@@ -13,13 +13,17 @@ import {
 } from "@dnd-kit/core";
 import { useDroppable } from "@dnd-kit/core";
 import { useDraggable } from "@dnd-kit/core";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { format, isPast, isToday } from "date-fns";
 import { apiFetch } from "@/lib/api";
-import { LEAD_COLUMNS, type Lead } from "@/lib/types";
+import { LEAD_COLUMNS, type Lead, type Member } from "@/lib/types";
+import { useMembers } from "@/lib/use-members";
 import { formatCurrency } from "@/lib/utils";
+import { Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { LeadFormDialog } from "./lead-form-dialog";
 
 function followupLabel(iso: string | null): { text: string; className: string } | null {
@@ -44,7 +48,19 @@ function followupLabel(iso: string | null): { text: string; className: string } 
   };
 }
 
-function LeadCard({ lead, onConvert }: { lead: Lead; onConvert?: () => void }) {
+function LeadCard({
+  lead,
+  memberName,
+  onConvert,
+  onEdit,
+  onDelete,
+}: {
+  lead: Lead;
+  memberName?: string;
+  onConvert?: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
   const followup = followupLabel(lead.next_followup);
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: lead.id,
@@ -54,17 +70,42 @@ function LeadCard({ lead, onConvert }: { lead: Lead; onConvert?: () => void }) {
     ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
     : undefined;
 
+  const stop = (e: React.SyntheticEvent) => e.stopPropagation();
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       {...listeners}
       {...attributes}
-      className={`cursor-grab rounded-lg border border-slate-200 bg-white p-3 shadow-sm active:cursor-grabbing ${isDragging ? "opacity-50" : ""}`}
+      className={`cursor-grab rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing ${isDragging ? "opacity-50" : ""}`}
     >
-      <p className="font-medium text-slate-900">{lead.name}</p>
+      <div className="flex items-start justify-between gap-2">
+        <p className="font-medium text-slate-900">{lead.name}</p>
+        <div className="flex gap-1">
+          <button
+            type="button"
+            onPointerDown={stop}
+            onClick={(e) => { stop(e); onEdit(); }}
+            className="text-xs text-indigo-600 hover:underline"
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            onPointerDown={stop}
+            onClick={(e) => { stop(e); onDelete(); }}
+            className="text-xs text-red-500 hover:underline"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
       {lead.company_name && <p className="text-xs text-slate-500">{lead.company_name}</p>}
-      <p className="mt-2 text-sm font-semibold text-blue-600">{formatCurrency(lead.value)}</p>
+      <p className="mt-2 text-sm font-semibold text-indigo-600">{formatCurrency(lead.value)}</p>
+      {memberName && (
+        <p className="mt-1 text-xs text-slate-500">Owner: {memberName}</p>
+      )}
       {followup && <p className={`mt-1 text-xs ${followup.className}`}>{followup.text}</p>}
       {onConvert && (
         <Button
@@ -72,9 +113,9 @@ function LeadCard({ lead, onConvert }: { lead: Lead; onConvert?: () => void }) {
           size="sm"
           variant="outline"
           className="mt-2 w-full"
-          onPointerDown={(e) => e.stopPropagation()}
+          onPointerDown={stop}
           onClick={(e) => {
-            e.stopPropagation();
+            stop(e);
             onConvert();
           }}
         >
@@ -85,25 +126,42 @@ function LeadCard({ lead, onConvert }: { lead: Lead; onConvert?: () => void }) {
   );
 }
 
+const STAGE_DOT: Record<string, string> = {
+  new: "bg-indigo-500",
+  contacted: "bg-sky-500",
+  proposal: "bg-amber-500",
+  won: "bg-emerald-500",
+  lost: "bg-rose-500",
+};
+
 function Column({
   status,
   title,
   leads,
+  memberMap,
   onConvertLead,
+  onEditLead,
+  onDeleteLead,
 }: {
   status: string;
   title: string;
   leads: Lead[];
+  memberMap: Map<string, string>;
   onConvertLead?: (lead: Lead) => void;
+  onEditLead: (lead: Lead) => void;
+  onDeleteLead: (lead: Lead) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
   return (
     <div
       ref={setNodeRef}
-      className={`flex min-h-[420px] w-72 shrink-0 flex-col rounded-xl border bg-blue-50/50 p-3 ${isOver ? "ring-2 ring-blue-400" : "border-slate-200"}`}
+      className={`flex min-h-[440px] w-72 shrink-0 flex-col rounded-2xl border p-3 transition-colors ${isOver ? "border-indigo-300 bg-indigo-50/60 ring-2 ring-indigo-300" : "border-slate-200 bg-slate-50/70"}`}
     >
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-slate-700">{title}</h3>
+      <div className="mb-3 flex items-center justify-between px-1">
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+          <span className={`h-2.5 w-2.5 rounded-full ${STAGE_DOT[status] ?? "bg-slate-400"}`} />
+          {title}
+        </h3>
         <Badge variant="secondary">{leads.length}</Badge>
       </div>
       <div className="flex flex-1 flex-col gap-2">
@@ -111,7 +169,10 @@ function Column({
           <LeadCard
             key={lead.id}
             lead={lead}
+            memberName={lead.assigned_user_id ? memberMap.get(lead.assigned_user_id) : undefined}
             onConvert={status === "won" && onConvertLead ? () => onConvertLead(lead) : undefined}
+            onEdit={() => onEditLead(lead)}
+            onDelete={() => onDeleteLead(lead)}
           />
         ))}
       </div>
@@ -123,11 +184,20 @@ export function LeadsKanban() {
   const queryClient = useQueryClient();
   const [activeLead, setActiveLead] = useState<Lead | null>(null);
   const [formOpen, setFormOpen] = useState(false);
+  const [editingLead, setEditingLead] = useState<Lead | null>(null);
+  const [search, setSearch] = useState("");
+  const [assigneeFilter, setAssigneeFilter] = useState("");
 
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ["leads"],
     queryFn: () => apiFetch<Lead[]>("/leads"),
   });
+  const { data: members = [] } = useMembers();
+
+  const memberMap = useMemo(
+    () => new Map<string, string>((members as Member[]).map((m) => [m.id, m.name])),
+    [members],
+  );
 
   const updateMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
@@ -147,6 +217,11 @@ export function LeadsKanban() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => apiFetch(`/leads/${id}`, { method: "DELETE" }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["leads"] }),
+  });
+
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
   function handleDragStart(event: DragStartEvent) {
@@ -162,21 +237,61 @@ export function LeadsKanban() {
     updateMutation.mutate({ id: lead.id, status: newStatus });
   }
 
+  const filteredLeads = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return leads.filter((l) => {
+      if (assigneeFilter && l.assigned_user_id !== assigneeFilter) return false;
+      if (!term) return true;
+      return (
+        l.name.toLowerCase().includes(term) ||
+        (l.company_name ?? "").toLowerCase().includes(term) ||
+        (l.email ?? "").toLowerCase().includes(term)
+      );
+    });
+  }, [leads, search, assigneeFilter]);
+
   if (isLoading) return <p className="text-sm text-slate-500">Loading pipeline…</p>;
 
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Sales Pipeline</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Sales pipeline</h1>
           <p className="text-sm text-slate-500">Drag leads across stages</p>
         </div>
-        <Button onClick={() => setFormOpen(true)}>Add Lead</Button>
+        <Button onClick={() => { setEditingLead(null); setFormOpen(true); }} className="gap-2">
+          <Plus className="h-4 w-4" />
+          Add lead
+        </Button>
       </div>
 
-      {(updateMutation.isError || convertMutation.isError) && (
+      <div className="mb-4 flex flex-wrap gap-2">
+        <Input
+          placeholder="Search name, company, email…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="max-w-xs"
+        />
+        <div className="w-44">
+          <Select value={assigneeFilter} onChange={(e) => setAssigneeFilter(e.target.value)}>
+            <option value="">All owners</option>
+            {(members as Member[]).map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+        {(search || assigneeFilter) && (
+          <Button variant="outline" onClick={() => { setSearch(""); setAssigneeFilter(""); }}>
+            Clear
+          </Button>
+        )}
+      </div>
+
+      {(updateMutation.isError || convertMutation.isError || deleteMutation.isError) && (
         <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
-          {((updateMutation.error ?? convertMutation.error) as Error).message}
+          {((updateMutation.error ?? convertMutation.error ?? deleteMutation.error) as Error).message}
         </p>
       )}
 
@@ -192,8 +307,13 @@ export function LeadsKanban() {
               key={col.id}
               status={col.id}
               title={col.title}
-              leads={leads.filter((l) => l.status === col.id)}
+              leads={filteredLeads.filter((l) => l.status === col.id)}
+              memberMap={memberMap}
               onConvertLead={(lead) => convertMutation.mutate(lead.id)}
+              onEditLead={(lead) => { setEditingLead(lead); setFormOpen(true); }}
+              onDeleteLead={(lead) => {
+                if (confirm(`Delete lead "${lead.name}"?`)) deleteMutation.mutate(lead.id);
+              }}
             />
           ))}
         </div>
@@ -206,7 +326,11 @@ export function LeadsKanban() {
         </DragOverlay>
       </DndContext>
 
-      <LeadFormDialog open={formOpen} onOpenChange={setFormOpen} />
+      <LeadFormDialog
+        open={formOpen}
+        onOpenChange={(v) => { setFormOpen(v); if (!v) setEditingLead(null); }}
+        lead={editingLead}
+      />
     </div>
   );
 }

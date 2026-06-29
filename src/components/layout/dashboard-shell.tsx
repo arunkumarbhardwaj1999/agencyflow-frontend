@@ -54,7 +54,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex h-screen items-center justify-center bg-white">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
           <p className="text-sm text-slate-500">Loading workspace…</p>
         </div>
       </div>
@@ -62,10 +62,10 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-white">
+    <div className="flex h-screen overflow-hidden bg-[#f6f8fc]">
       <AppSidebar />
-      <main className="flex-1 overflow-y-auto bg-white">
-        <div className="mx-auto max-w-7xl px-6 py-6">
+      <main className="flex-1 overflow-y-auto">
+        <div className="w-full px-6 py-6 lg:px-8 xl:px-10">
           <DashboardHeader title={title} showNewLead={pathname === "/dashboard"} />
           {children}
         </div>

@@ -36,6 +36,13 @@ export type StaffMember = {
   created_at: string;
 };
 
+export type Member = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+};
+
 export type Lead = {
   id: string;
   company_id: string;

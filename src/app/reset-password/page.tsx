@@ -57,7 +57,7 @@ function ResetPasswordForm() {
       subtitle="Each token works once. After reset, sign in with the same email you used on forgot password."
     >
       {accountEmail && (
-        <p className="mb-4 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-800">
+        <p className="mb-4 rounded-lg bg-indigo-50 px-3 py-2 text-sm text-indigo-800">
           Login email: <strong>{accountEmail}</strong>
         </p>
       )}
@@ -68,7 +68,7 @@ function ResetPasswordForm() {
           <p>Redirecting to sign in…</p>
           <Link
             href={accountEmail ? `/login?email=${encodeURIComponent(accountEmail)}` : "/login"}
-            className="inline-block text-blue-600 hover:underline"
+            className="inline-block text-indigo-600 hover:underline"
           >
             Go to sign in now
           </Link>
@@ -91,7 +91,7 @@ function ResetPasswordForm() {
             <div className="space-y-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
               <p>{(mutation.error as Error).message}</p>
               {(mutation.error as Error).message.includes("already used") && (
-                <Link href="/forgot-password" className="block text-blue-600 hover:underline">
+                <Link href="/forgot-password" className="block text-indigo-600 hover:underline">
                   Generate a new reset token
                 </Link>
               )}
@@ -105,7 +105,7 @@ function ResetPasswordForm() {
 
       {!done && (
         <p className="mt-4 text-sm">
-          <Link href="/login" className="text-blue-600 hover:underline">
+          <Link href="/login" className="text-indigo-600 hover:underline">
             Back to sign in
           </Link>
         </p>
@@ -119,7 +119,7 @@ export default function ResetPasswordPage() {
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center bg-white">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
         </div>
       }
     >
