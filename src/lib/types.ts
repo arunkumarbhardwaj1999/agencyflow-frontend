@@ -134,6 +134,14 @@ export type DashboardLiveEvent = {
   created_at: string;
 };
 
+export type InvoiceItem = {
+  id: string;
+  description: string;
+  quantity: string;
+  unit_price: string;
+  amount: string;
+};
+
 export type Invoice = {
   id: string;
   company_id: string;
@@ -142,11 +150,44 @@ export type Invoice = {
   invoice_number: string;
   subtotal: string;
   tax: string;
+  cgst: string;
+  sgst: string;
+  igst: string;
+  tax_type: string;
+  place_of_supply: string | null;
   total: string;
   status: string;
   due_date: string;
+  notes: string | null;
   payment_link: string | null;
+  payment_provider: string | null;
+  paid_at: string | null;
+  items: InvoiceItem[];
   created_at: string;
+};
+
+export type PaymentLinkResponse = {
+  provider: string;
+  url: string;
+  order_id: string;
+};
+
+export type PortalMe = {
+  client_id: string;
+  name: string;
+  business_name: string;
+  email: string;
+  company_name: string;
+};
+
+export type PortalSummary = {
+  active_projects: number;
+  completed_projects: number;
+  total_projects: number;
+  invoice_count: number;
+  total_invoiced: string;
+  total_paid: string;
+  outstanding: string;
 };
 
 export const LEAD_COLUMNS = [

@@ -75,3 +75,22 @@ export async function apiFetch<T>(
   if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }
+
+export async function apiBlob(path: string): Promise<Blob> {
+  const headers = new Headers();
+  let token = getAccessToken();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+
+  let res = await fetch(`${API_URL}${path}`, { headers });
+  if (res.status === 401 && getRefreshToken()) {
+    token = await refreshAccessToken();
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+      res = await fetch(`${API_URL}${path}`, { headers });
+    }
+  }
+  if (!res.ok) {
+    throw new ApiError("Download failed", res.status);
+  }
+  return res.blob();
+}
