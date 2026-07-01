@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CinematicAuth } from "./cinematic/cinematic-auth";
+import { GoogleAuthProvider } from "@/providers/google-auth-provider";
 
 export function AuthPage({ initialMode }: { initialMode: "login" | "register" }) {
   const router = useRouter();
@@ -17,5 +18,9 @@ export function AuthPage({ initialMode }: { initialMode: "login" | "register" })
     router.replace(next === "login" ? "/login" : "/register", { scroll: false });
   }
 
-  return <CinematicAuth mode={mode} onModeChange={handleModeChange} />;
+  return (
+    <GoogleAuthProvider>
+      <CinematicAuth mode={mode} onModeChange={handleModeChange} />
+    </GoogleAuthProvider>
+  );
 }
