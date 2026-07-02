@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import {
   Area,
@@ -27,14 +25,14 @@ import {
   Users,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
-import { getAccessToken } from "@/lib/auth";
-import { LEAD_COLUMNS, type DashboardData, type DashboardLiveEvent, type Lead } from "@/lib/types";
+import { LEAD_COLUMNS, type DashboardData, type Lead } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StatCard } from "@/components/ui/stat-card";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { Reveal } from "@/components/ui/reveal";
 import { useAuthStore } from "@/stores/auth-store";
+import { useRealtimeOptional } from "@/providers/realtime-provider";
 
 const STAGE_COLORS: Record<string, string> = {
   new: "#6366f1",
@@ -68,8 +66,8 @@ function formatDueLabel(dueAt: string) {
 export function DashboardView() {
   const user = useAuthStore((s) => s.user);
   const isOwner = user?.role === "owner";
-  const queryClient = useQueryClient();
-  const [liveEvents, setLiveEvents] = useState<DashboardLiveEvent[]>([]);
+  const realtime = useRealtimeOptional();
+  const liveEvents = realtime?.events ?? [];
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["dashboard"],
@@ -81,32 +79,6 @@ export function DashboardView() {
     queryKey: ["leads"],
     queryFn: () => apiFetch<Lead[]>("/leads"),
   });
-
-  useEffect(() => {
-    if (!isOwner || !user?.company_id) return;
-    const token = getAccessToken();
-    if (!token) return;
-    const apiBase = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1").replace("/api/v1", "");
-    const wsBase = apiBase.startsWith("https://")
-      ? apiBase.replace("https://", "wss://")
-      : apiBase.replace("http://", "ws://");
-    const ws = new WebSocket(
-      `${wsBase}/ws/dashboard/${user.company_id}?token=${encodeURIComponent(token)}`,
-    );
-
-    ws.onmessage = (event) => {
-      try {
-        const parsed = JSON.parse(event.data) as DashboardLiveEvent;
-        setLiveEvents((prev) => [parsed, ...prev].slice(0, 8));
-        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-      } catch {
-        // ignore malformed websocket event
-      }
-    };
-    ws.onerror = () => {};
-
-    return () => ws.close();
-  }, [isOwner, user?.company_id, queryClient]);
 
   if (!isOwner) {
     const pipeline = leads.filter((l) => !["won", "lost"].includes(l.status));

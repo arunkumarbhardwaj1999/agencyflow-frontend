@@ -10,12 +10,23 @@ import {
   Clock3,
   CreditCard,
   Download,
+  Mail,
+  MessageCircle,
   Plus,
   Receipt,
+  Sparkles,
   Trash2,
 } from "lucide-react";
 import { apiBlob, apiFetch } from "@/lib/api";
-import type { Client, Invoice, PaymentLinkResponse } from "@/lib/types";
+import type {
+  Client,
+  Invoice,
+  MessageResponse,
+  PaymentLinkResponse,
+  WhatsAppLog,
+  WhatsAppSendResponse,
+  WhatsAppTemplate,
+} from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,11 +38,12 @@ import { StatCard } from "@/components/ui/stat-card";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { Reveal } from "@/components/ui/reveal";
 import { Modal } from "@/components/ui/modal";
+import { AIResultModal } from "@/components/ai/ai-result-modal";
 
 const schema = z.object({
   client_id: z.string().min(1, "Select a client"),
   due_date: z.string().min(1, "Due date required"),
-  tax_rate: z.string().default("18"),
+  tax_rate: z.string().min(1, "GST rate required"),
   place_of_supply: z.string().optional(),
   notes: z.string().optional(),
   items: z
@@ -58,6 +70,9 @@ const n = (v: string) => parseFloat(v) || 0;
 export function FinancePanel() {
   const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const [waTemplate, setWaTemplate] = useState("payment_reminder");
+  const [aiInvoiceId, setAiInvoiceId] = useState<string | null>(null);
 
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ["invoices"],
@@ -66,6 +81,14 @@ export function FinancePanel() {
   const { data: clients = [] } = useQuery({
     queryKey: ["clients"],
     queryFn: () => apiFetch<Client[]>("/clients"),
+  });
+  const { data: waLogs = [] } = useQuery({
+    queryKey: ["whatsapp-logs"],
+    queryFn: () => apiFetch<WhatsAppLog[]>("/whatsapp/logs?limit=10"),
+  });
+  const { data: waTemplates = [] } = useQuery({
+    queryKey: ["whatsapp-templates"],
+    queryFn: () => apiFetch<WhatsAppTemplate[]>("/whatsapp/templates"),
   });
 
   const { register, handleSubmit, reset, control, watch, formState: { errors } } = useForm<FormValues>({
@@ -134,6 +157,37 @@ export function FinancePanel() {
     },
   });
 
+  const sendMutation = useMutation({
+    mutationFn: (id: string) =>
+      apiFetch<MessageResponse>(`/invoices/${id}/send`, { method: "POST" }),
+    onSuccess: (data) => {
+      setToast(data.message);
+      setTimeout(() => setToast(null), 5000);
+    },
+    onError: (err) => {
+      setToast((err as Error).message);
+      setTimeout(() => setToast(null), 5000);
+    },
+  });
+
+  const whatsappMutation = useMutation({
+    mutationFn: ({ id, template }: { id: string; template: string }) =>
+      apiFetch<WhatsAppSendResponse>(
+        `/whatsapp/invoices/${id}/notify?template=${encodeURIComponent(template)}`,
+        { method: "POST" },
+      ),
+    onSuccess: (data) => {
+      const label = data.queued ? "queued" : data.status;
+      setToast(`WhatsApp ${label}: ${data.phone}`);
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-logs"] });
+      setTimeout(() => setToast(null), 5000);
+    },
+    onError: (err) => {
+      setToast((err as Error).message);
+      setTimeout(() => setToast(null), 5000);
+    },
+  });
+
   async function downloadPdf(inv: Invoice) {
     const blob = await apiBlob(`/invoices/${inv.id}/pdf`);
     const url = URL.createObjectURL(blob);
@@ -147,17 +201,43 @@ export function FinancePanel() {
 
   return (
     <div className="space-y-6">
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 max-w-sm rounded-lg border border-indigo-100 bg-white px-4 py-3 text-sm text-slate-700 shadow-lg">
+          {toast}
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Invoices &amp; billing</h1>
           <p className="text-sm text-slate-500">
-            GST-compliant invoices — auto CGST+SGST or IGST, PDF export &amp; payment links
+            GST-compliant invoices — auto CGST+SGST or IGST, PDF export, payment links &amp; WhatsApp
           </p>
         </div>
-        <Button onClick={() => setShowModal(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Create invoice
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Select
+            value={waTemplate}
+            onChange={(e) => setWaTemplate(e.target.value)}
+            className="h-10 w-44"
+            title="Default WhatsApp template for invoice rows"
+          >
+            {waTemplates.map((t) => (
+              <option key={t.key} value={t.key}>
+                WA: {t.label}
+              </option>
+            ))}
+            {waTemplates.length === 0 && (
+              <>
+                <option value="payment_reminder">WA: Payment reminder</option>
+                <option value="invoice_ready">WA: Invoice ready</option>
+                <option value="payment_received">WA: Payment received</option>
+              </>
+            )}
+          </Select>
+          <Button onClick={() => setShowModal(true)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Create invoice
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
@@ -359,6 +439,38 @@ export function FinancePanel() {
                             <Download className="h-3.5 w-3.5" />
                             PDF
                           </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => sendMutation.mutate(inv.id)}
+                            disabled={sendMutation.isPending}
+                            className="gap-1"
+                            title="Email invoice to client"
+                          >
+                            <Mail className="h-3.5 w-3.5" />
+                            Email
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setAiInvoiceId(inv.id)}
+                            className="gap-1"
+                            title="AI draft invoice email"
+                          >
+                            <Sparkles className="h-3.5 w-3.5" />
+                            AI
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => whatsappMutation.mutate({ id: inv.id, template: waTemplate })}
+                            disabled={whatsappMutation.isPending}
+                            className="gap-1"
+                            title="Send WhatsApp notification"
+                          >
+                            <MessageCircle className="h-3.5 w-3.5" />
+                            WA
+                          </Button>
                           {inv.status !== "paid" && (
                             <>
                               <Button
@@ -395,6 +507,50 @@ export function FinancePanel() {
           </CardContent>
         </Card>
       </Reveal>
+
+      <Reveal delay={120}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">WhatsApp activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {waLogs.length === 0 ? (
+              <p className="text-sm text-slate-500">
+                No WhatsApp messages yet. Send from an invoice row or enable auto-triggers on payment.
+              </p>
+            ) : (
+              <ul className="space-y-3">
+                {waLogs.map((log) => (
+                  <li key={log.id} className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-medium text-slate-800">{log.phone}</span>
+                      <Badge variant={log.status === "failed" ? "danger" : "secondary"} className="capitalize">
+                        {log.status}
+                      </Badge>
+                    </div>
+                    {log.template_key && (
+                      <p className="mt-1 text-xs text-indigo-600">Template: {log.template_key}</p>
+                    )}
+                    <p className="mt-1 line-clamp-2 text-slate-600">{log.message}</p>
+                    <p className="mt-1 text-xs text-slate-400">
+                      {new Date(log.sent_at).toLocaleString()}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      </Reveal>
+
+      <AIResultModal
+        open={!!aiInvoiceId}
+        onClose={() => setAiInvoiceId(null)}
+        title="Draft invoice email"
+        description="AI email to accompany the invoice PDF"
+        streamAction="draft-invoice-email"
+        body={aiInvoiceId ? { invoice_id: aiInvoiceId } : {}}
+      />
     </div>
   );
 }

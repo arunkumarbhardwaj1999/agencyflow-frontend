@@ -76,6 +76,27 @@ export async function apiFetch<T>(
   return res.json() as Promise<T>;
 }
 
+export async function apiUpload<T>(path: string, formData: FormData): Promise<T> {
+  const headers = new Headers();
+  let token = getAccessToken();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+
+  let res = await fetch(`${API_URL}${path}`, { method: "POST", body: formData, headers });
+  if (res.status === 401 && getRefreshToken()) {
+    token = await refreshAccessToken();
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+      res = await fetch(`${API_URL}${path}`, { method: "POST", body: formData, headers });
+    }
+  }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new ApiError(formatApiError(err.detail ?? res.statusText), res.status);
+  }
+  if (res.status === 204) return undefined as T;
+  return res.json() as Promise<T>;
+}
+
 export async function apiBlob(path: string): Promise<Blob> {
   const headers = new Headers();
   let token = getAccessToken();
@@ -93,4 +114,70 @@ export async function apiBlob(path: string): Promise<Blob> {
     throw new ApiError("Download failed", res.status);
   }
   return res.blob();
+}
+
+export async function apiStreamAI(
+  action: string,
+  body: Record<string, string>,
+  onChunk: (text: string, mode: string) => void,
+): Promise<{ mode: string; error?: string }> {
+  const headers = new Headers({ "Content-Type": "application/json" });
+  let token = getAccessToken();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+
+  let res = await fetch(`${API_URL}/ai/stream`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ action, ...body }),
+  });
+
+  if (res.status === 401 && getRefreshToken()) {
+    token = await refreshAccessToken();
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+      res = await fetch(`${API_URL}/ai/stream`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action, ...body }),
+      });
+    }
+  }
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new ApiError(formatApiError(err.detail ?? res.statusText), res.status);
+  }
+
+  const reader = res.body?.getReader();
+  if (!reader) throw new ApiError("Stream unavailable", 500);
+
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let mode = "mock";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      try {
+        const payload = JSON.parse(line.slice(6)) as {
+          chunk?: string;
+          done?: boolean;
+          mode?: string;
+          error?: string;
+        };
+        if (payload.mode) mode = payload.mode;
+        if (payload.error) return { mode, error: payload.error };
+        if (payload.chunk) onChunk(payload.chunk, mode);
+        if (payload.done) return { mode };
+      } catch {
+        // skip malformed SSE line
+      }
+    }
+  }
+  return { mode };
 }

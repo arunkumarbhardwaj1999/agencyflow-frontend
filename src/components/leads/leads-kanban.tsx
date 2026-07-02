@@ -19,12 +19,13 @@ import { apiFetch } from "@/lib/api";
 import { LEAD_COLUMNS, type Lead, type Member } from "@/lib/types";
 import { useMembers } from "@/lib/use-members";
 import { formatCurrency } from "@/lib/utils";
-import { Plus } from "lucide-react";
+import { Plus, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { LeadFormDialog } from "./lead-form-dialog";
+import { AIResultModal } from "@/components/ai/ai-result-modal";
 
 function followupLabel(iso: string | null): { text: string; className: string } | null {
   if (!iso) return null;
@@ -54,12 +55,14 @@ function LeadCard({
   onConvert,
   onEdit,
   onDelete,
+  onAI,
 }: {
   lead: Lead;
   memberName?: string;
   onConvert?: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onAI: () => void;
 }) {
   const followup = followupLabel(lead.next_followup);
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -83,6 +86,14 @@ function LeadCard({
       <div className="flex items-start justify-between gap-2">
         <p className="font-medium text-slate-900">{lead.name}</p>
         <div className="flex gap-1">
+          <button
+            type="button"
+            onPointerDown={stop}
+            onClick={(e) => { stop(e); onAI(); }}
+            className="text-xs text-violet-600 hover:underline"
+          >
+            AI
+          </button>
           <button
             type="button"
             onPointerDown={stop}
@@ -142,6 +153,7 @@ function Column({
   onConvertLead,
   onEditLead,
   onDeleteLead,
+  onAILead,
 }: {
   status: string;
   title: string;
@@ -150,6 +162,7 @@ function Column({
   onConvertLead?: (lead: Lead) => void;
   onEditLead: (lead: Lead) => void;
   onDeleteLead: (lead: Lead) => void;
+  onAILead: (lead: Lead) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
   return (
@@ -173,6 +186,7 @@ function Column({
             onConvert={status === "won" && onConvertLead ? () => onConvertLead(lead) : undefined}
             onEdit={() => onEditLead(lead)}
             onDelete={() => onDeleteLead(lead)}
+            onAI={() => onAILead(lead)}
           />
         ))}
       </div>
@@ -187,6 +201,8 @@ export function LeadsKanban() {
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [search, setSearch] = useState("");
   const [assigneeFilter, setAssigneeFilter] = useState("");
+  const [aiLeadId, setAiLeadId] = useState<string | null>(null);
+  const [followupsOpen, setFollowupsOpen] = useState(false);
 
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ["leads"],
@@ -259,10 +275,16 @@ export function LeadsKanban() {
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Sales pipeline</h1>
           <p className="text-sm text-slate-500">Drag leads across stages</p>
         </div>
-        <Button onClick={() => { setEditingLead(null); setFormOpen(true); }} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add lead
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setFollowupsOpen(true)} className="gap-2">
+            <Sparkles className="h-4 w-4" />
+            AI follow-ups
+          </Button>
+          <Button onClick={() => { setEditingLead(null); setFormOpen(true); }} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add lead
+          </Button>
+        </div>
       </div>
 
       <div className="mb-4 flex flex-wrap gap-2">
@@ -314,6 +336,7 @@ export function LeadsKanban() {
               onDeleteLead={(lead) => {
                 if (confirm(`Delete lead "${lead.name}"?`)) deleteMutation.mutate(lead.id);
               }}
+              onAILead={(lead) => setAiLeadId(lead.id)}
             />
           ))}
         </div>
@@ -330,6 +353,25 @@ export function LeadsKanban() {
         open={formOpen}
         onOpenChange={(v) => { setFormOpen(v); if (!v) setEditingLead(null); }}
         lead={editingLead}
+      />
+
+      <AIResultModal
+        key={aiLeadId ?? "lead-ai"}
+        open={!!aiLeadId}
+        onClose={() => setAiLeadId(null)}
+        title="Draft follow-up email"
+        description="AI-generated email based on lead context"
+        streamAction="draft-email"
+        body={aiLeadId ? { lead_id: aiLeadId } : {}}
+      />
+
+      <AIResultModal
+        open={followupsOpen}
+        onClose={() => setFollowupsOpen(false)}
+        title="Today's follow-up suggestions"
+        description="Prioritized actions for your open pipeline"
+        streamAction="suggest-followups"
+        body={{}}
       />
     </div>
   );

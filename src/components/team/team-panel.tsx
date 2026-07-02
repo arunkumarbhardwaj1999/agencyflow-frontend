@@ -18,6 +18,7 @@ import { Select } from "@/components/ui/select";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { Reveal } from "@/components/ui/reveal";
 import { Modal } from "@/components/ui/modal";
+import { WorkspaceLogo } from "./workspace-logo";
 
 const schema = z.object({
   first_name: z.string().min(1),
@@ -152,6 +153,10 @@ export function TeamPanel() {
           </div>
         </form>
       </Modal>
+
+      <Reveal>
+        <WorkspaceLogo />
+      </Reveal>
 
       <Reveal>
         <Card className="overflow-hidden">

@@ -1,8 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, Plus, Settings } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Bell, Plus, Settings, Volume2, VolumeX, Monitor } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { useRealtime } from "@/providers/realtime-provider";
+import { useNotificationStore } from "@/stores/notification-store";
+import { requestDesktopPermission, getDesktopPermission } from "@/lib/notifications";
 
 export function DashboardHeader({
   title,
@@ -11,17 +16,131 @@ export function DashboardHeader({
   title: string;
   showNewLead?: boolean;
 }) {
+  const { events, status, unread, markRead } = useRealtime();
+  const sound = useNotificationStore((s) => s.sound);
+  const desktop = useNotificationStore((s) => s.desktop);
+  const setSound = useNotificationStore((s) => s.setSound);
+  const setDesktop = useNotificationStore((s) => s.setDesktop);
+  const [open, setOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  async function toggleDesktop() {
+    if (desktop) {
+      setDesktop(false);
+      return;
+    }
+    const perm = getDesktopPermission();
+    if (perm === "granted") {
+      setDesktop(true);
+    } else if (perm === "denied" || perm === "unsupported") {
+      setDesktop(false);
+    } else {
+      const result = await requestDesktopPermission();
+      setDesktop(result === "granted");
+    }
+  }
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    if (open) document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, [open]);
+
+  const statusColor =
+    status === "connected"
+      ? "bg-emerald-500"
+      : status === "connecting"
+        ? "bg-amber-400 animate-pulse"
+        : "bg-slate-300";
+
   return (
     <header className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
-      <h1 className="text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
+      <div className="flex items-center gap-3">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
+        <span
+          className={`h-2 w-2 rounded-full ${statusColor}`}
+          title={`Live updates: ${status}`}
+        />
+      </div>
       <div className="flex items-center gap-2">
-        <button
-          type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 hover:text-indigo-600"
-          aria-label="Notifications"
-        >
-          <Bell className="h-4 w-4" />
-        </button>
+        <div className="relative" ref={panelRef}>
+          <button
+            type="button"
+            onClick={() => {
+              setOpen((v) => !v);
+              if (!open) markRead();
+            }}
+            className="relative flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 hover:text-indigo-600"
+            aria-label="Live activity"
+          >
+            <Bell className="h-4 w-4" />
+            {unread > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-indigo-600 px-1 text-[10px] font-bold text-white">
+                {unread > 9 ? "9+" : unread}
+              </span>
+            )}
+          </button>
+          {open && (
+            <div className="absolute right-0 z-50 mt-2 w-80 rounded-xl border border-slate-200 bg-white shadow-xl">
+              <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">Live activity</p>
+                  <p className="text-xs text-slate-500 capitalize">{status}</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setSound(!sound)}
+                    className={`flex h-7 w-7 items-center justify-center rounded-md border transition-colors ${
+                      sound
+                        ? "border-indigo-200 bg-indigo-50 text-indigo-600"
+                        : "border-slate-200 bg-white text-slate-400 hover:text-slate-600"
+                    }`}
+                    title={sound ? "Sound on" : "Sound off"}
+                    aria-label="Toggle notification sound"
+                  >
+                    {sound ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={toggleDesktop}
+                    className={`flex h-7 w-7 items-center justify-center rounded-md border transition-colors ${
+                      desktop
+                        ? "border-indigo-200 bg-indigo-50 text-indigo-600"
+                        : "border-slate-200 bg-white text-slate-400 hover:text-slate-600"
+                    }`}
+                    title={desktop ? "Desktop notifications on" : "Desktop notifications off"}
+                    aria-label="Toggle desktop notifications"
+                  >
+                    <Monitor className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+              <ul className="max-h-72 overflow-y-auto py-1">
+                {events.length === 0 && (
+                  <li className="px-4 py-6 text-center text-sm text-slate-400">
+                    No live events yet. Create a lead or invoice to see updates.
+                  </li>
+                )}
+                {events.map((ev) => (
+                  <li key={ev.id} className="border-b border-slate-50 px-4 py-3 last:border-0">
+                    <p className="text-xs font-medium uppercase tracking-wide text-indigo-600">
+                      {ev.type}
+                    </p>
+                    <p className="mt-0.5 text-sm text-slate-800">{ev.message}</p>
+                    <p className="mt-1 text-xs text-slate-400">
+                      {formatDistanceToNow(new Date(ev.created_at), { addSuffix: true })}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
         <button
           type="button"
           className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 hover:text-indigo-600"

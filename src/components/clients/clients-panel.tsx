@@ -8,7 +8,7 @@ import { z } from "zod";
 import { apiFetch } from "@/lib/api";
 import type { Client, Member } from "@/lib/types";
 import { useMembers } from "@/lib/use-members";
-import { Plus, UserRound } from "lucide-react";
+import { Plus, Sparkles, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,7 @@ import { Select } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Reveal } from "@/components/ui/reveal";
 import { Modal } from "@/components/ui/modal";
+import { AIResultModal } from "@/components/ai/ai-result-modal";
 
 const AVATAR_GRADIENTS = [
   "from-indigo-500 to-violet-600",
@@ -50,6 +51,7 @@ export function ClientsPanel() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Client | null>(null);
   const [search, setSearch] = useState("");
+  const [aiClientId, setAiClientId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data: clients = [], isLoading } = useQuery({
@@ -252,9 +254,18 @@ export function ClientsPanel() {
                     <Badge variant="info">{c.active_projects} projects</Badge>
                     <Badge variant="secondary">{c.invoice_count} invoices</Badge>
                   </div>
-                  <div className="flex gap-2 pt-2">
+                  <div className="flex flex-wrap gap-2 pt-2">
                     <Button variant="outline" size="sm" onClick={() => openEdit(c)}>
                       Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1"
+                      onClick={() => setAiClientId(c.id)}
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Welcome email
                     </Button>
                     <Button
                       variant="outline"
@@ -280,6 +291,15 @@ export function ClientsPanel() {
           {(deleteMutation.error as Error).message}
         </p>
       )}
+
+      <AIResultModal
+        open={!!aiClientId}
+        onClose={() => setAiClientId(null)}
+        title="Client welcome email"
+        description="AI onboarding email for your new client"
+        streamAction="draft-client-welcome"
+        body={aiClientId ? { client_id: aiClientId } : {}}
+      />
     </div>
   );
 }

@@ -177,3 +177,30 @@ body {
   background: #94a3b8;
   background-clip: content-box;
 }
+
+/* ---------- Landing page (matches app indigo/violet theme) ---------- */
+:root {
+  --landing-green: #4f46e5;
+}
+
+.landing-page {
+  --landing-green: #4f46e5;
+  --landing-accent: #6366f1;
+  --landing-violet: #8b5cf6;
+  overflow-x: hidden;
+}
+
+.landing-gradient {
+  background: linear-gradient(135deg, #4f46e5 0%, #6d28d9 55%, #7c3aed 100%);
+}
+
+.landing-serif {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.landing-texture {
+  background-image: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 60% 80%, rgba(0, 0, 0, 0.15) 0%, transparent 50%);
+  background-size: cover;
+}

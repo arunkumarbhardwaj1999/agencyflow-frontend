@@ -172,6 +172,63 @@ export type PaymentLinkResponse = {
   order_id: string;
 };
 
+export type DocumentMeta = {
+  id: string;
+  project_id: string | null;
+  invoice_id: string | null;
+  filename: string;
+  content_type: string;
+  size: number;
+  kind: string;
+  created_at: string;
+};
+
+export type LogoResponse = {
+  logo: string;
+};
+
+export type MessageResponse = {
+  message: string;
+};
+
+export type AIResponse = {
+  content: string;
+  mode: string;
+};
+
+export type WhatsAppSendResponse = {
+  status: string;
+  phone: string;
+  message: string;
+  log_id: string | null;
+  queued?: boolean;
+};
+
+export type WhatsAppLog = {
+  id: string;
+  client_id: string | null;
+  phone: string;
+  message: string;
+  status: string;
+  template_key: string | null;
+  sent_at: string;
+};
+
+export type WhatsAppTemplate = {
+  key: string;
+  label: string;
+  description: string;
+  meta_name: string;
+  requires_approval: boolean;
+};
+
+export type AIStreamChunk = {
+  chunk: string;
+  done: boolean;
+  mode: string;
+  error?: string;
+};
+
 export type PortalMe = {
   client_id: string;
   name: string;

@@ -5,6 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { AppSidebar } from "./app-sidebar";
 import { DashboardHeader } from "./dashboard-header";
+import { LiveToastStack } from "@/components/realtime/live-toast-stack";
+import { RealtimeProvider, useRealtime } from "@/providers/realtime-provider";
 import { apiFetch } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
 import { useAuthStore } from "@/stores/auth-store";
@@ -62,14 +64,25 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
+    <RealtimeProvider>
+      <ShellInner title={title}>{children}</ShellInner>
+    </RealtimeProvider>
+  );
+}
+
+function ShellInner({ title, children }: { title: string; children: React.ReactNode }) {
+  const { events } = useRealtime();
+
+  return (
     <div className="flex h-screen overflow-hidden bg-[#f6f8fc]">
       <AppSidebar />
       <main className="flex-1 overflow-y-auto">
         <div className="w-full px-6 py-6 lg:px-8 xl:px-10">
-          <DashboardHeader title={title} showNewLead={pathname === "/dashboard"} />
+          <DashboardHeader title={title} showNewLead={title === "Dashboard"} />
           {children}
         </div>
       </main>
+      <LiveToastStack events={events} />
     </div>
   );
 }

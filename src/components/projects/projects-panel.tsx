@@ -9,7 +9,7 @@ import { format, isPast } from "date-fns";
 import { apiFetch } from "@/lib/api";
 import type { Client, Member, Project, Task } from "@/lib/types";
 import { useMembers } from "@/lib/use-members";
-import { Plus, FolderKanban } from "lucide-react";
+import { Plus, FolderKanban, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,8 @@ import { Badge } from "@/components/ui/badge";
 import { Reveal } from "@/components/ui/reveal";
 import { Modal } from "@/components/ui/modal";
 import { formatCurrency } from "@/lib/utils";
+import { ProjectDocuments } from "./project-documents";
+import { AIResultModal } from "@/components/ai/ai-result-modal";
 
 const projectSchema = z.object({
   client_id: z.string().uuid(),
@@ -56,6 +58,8 @@ const PROJECT_STATUSES = ["planning", "active", "review", "completed"] as const;
 export function ProjectsPanel() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showProjectModal, setShowProjectModal] = useState(false);
+  const [aiProjectId, setAiProjectId] = useState<string | null>(null);
+  const [aiTaskId, setAiTaskId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data: projects = [] } = useQuery({
@@ -266,6 +270,17 @@ export function ProjectsPanel() {
                   {expanded ? "Hide tasks" : `Tasks (${projectTasks.length})`}
                 </Button>
                 {expanded && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="ml-2 gap-1"
+                    onClick={() => setAiProjectId(p.id)}
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    AI summary
+                  </Button>
+                )}
+                {expanded && (
                   <div className="mt-4 space-y-3">
                     <form
                       className="grid gap-2 sm:grid-cols-2"
@@ -322,6 +337,13 @@ export function ProjectsPanel() {
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setAiTaskId(t.id)}
+                                className="text-xs text-indigo-600 hover:underline"
+                              >
+                                AI polish
+                              </button>
                               <select
                                 className="cursor-pointer rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40"
                                 value={t.status}
@@ -349,6 +371,7 @@ export function ProjectsPanel() {
                         <li className="text-xs text-slate-400">No tasks yet.</li>
                       )}
                     </ul>
+                    <ProjectDocuments projectId={p.id} />
                   </div>
                 )}
               </CardContent>
@@ -358,6 +381,24 @@ export function ProjectsPanel() {
         })}
         {projects.length === 0 && <p className="text-sm text-slate-500">No projects yet.</p>}
       </div>
+
+      <AIResultModal
+        open={!!aiProjectId}
+        onClose={() => setAiProjectId(null)}
+        title="Project status summary"
+        description="AI standup summary for your team"
+        streamAction="summarize-project"
+        body={aiProjectId ? { project_id: aiProjectId } : {}}
+      />
+
+      <AIResultModal
+        open={!!aiTaskId}
+        onClose={() => setAiTaskId(null)}
+        title="Polish task description"
+        description="AI improves clarity and actionability"
+        streamAction="polish-task"
+        body={aiTaskId ? { task_id: aiTaskId } : {}}
+      />
     </div>
   );
 }
