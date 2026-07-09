@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Copy, Loader2, Sparkles } from "lucide-react";
+import { Check, Copy, Loader2, Send, Sparkles } from "lucide-react";
 import { apiFetch, apiStreamAI } from "@/lib/api";
 import type { AIResponse } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,11 @@ type AIResultModalProps = {
   /** SSE stream action — preferred when set */
   streamAction?: string;
   body: Record<string, string>;
+  /** When set, shows a "Send email" button that POSTs { content } to this endpoint. */
+  sendEndpoint?: string;
+  /** Label for who the email goes to (e.g. the client name/email). */
+  sendLabel?: string;
+  onSentSuccess?: () => void;
 };
 
 export function AIResultModal({
@@ -27,12 +32,17 @@ export function AIResultModal({
   endpoint,
   streamAction,
   body,
+  sendEndpoint,
+  sendLabel,
+  onSentSuccess,
 }: AIResultModalProps) {
   const [content, setContent] = useState("");
   const [mode, setMode] = useState<string>("mock");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sentMsg, setSentMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) {
@@ -41,6 +51,8 @@ export function AIResultModal({
       setError(null);
       setCopied(false);
       setLoading(false);
+      setSending(false);
+      setSentMsg(null);
     }
   }, [open]);
 
@@ -80,6 +92,25 @@ export function AIResultModal({
     setTimeout(() => setCopied(false), 2000);
   }
 
+  async function sendEmail() {
+    if (!content || !sendEndpoint) return;
+    setSending(true);
+    setError(null);
+    setSentMsg(null);
+    try {
+      const res = await apiFetch<{ message: string }>(sendEndpoint, {
+        method: "POST",
+        body: JSON.stringify({ content }),
+      });
+      setSentMsg(res.message);
+      onSentSuccess?.();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSending(false);
+    }
+  }
+
   return (
     <Modal
       open={open}
@@ -99,7 +130,7 @@ export function AIResultModal({
               {copied ? "Copied" : "Copy"}
             </Button>
           )}
-          <Button onClick={run} disabled={loading} className="gap-2">
+          <Button onClick={run} disabled={loading || sending} variant={sendEndpoint ? "outline" : "default"} className="gap-2">
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -111,6 +142,12 @@ export function AIResultModal({
               "Generate"
             )}
           </Button>
+          {sendEndpoint && content && (
+            <Button onClick={sendEmail} disabled={sending || loading} className="gap-2">
+              {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {sending ? "Sending…" : "Send email"}
+            </Button>
+          )}
         </>
       }
     >
@@ -127,6 +164,14 @@ export function AIResultModal({
           </div>
         )}
         {error && <p className="text-sm text-rose-600">{error}</p>}
+        {sentMsg && (
+          <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
+            {sentMsg}
+          </p>
+        )}
+        {sendEndpoint && sendLabel && !sentMsg && (
+          <p className="text-xs text-slate-400">Sends to: {sendLabel}</p>
+        )}
         {(content || loading) && (
           <div className="space-y-3">
             <span className="inline-block rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">

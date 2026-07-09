@@ -3,12 +3,52 @@ export type User = {
   company_id: string | null;
   first_name: string;
   last_name: string | null;
+  username: string;
   email: string;
   phone: string | null;
   role: string;
   is_active: boolean;
   is_verified: boolean;
+  must_change_password: boolean;
   created_at: string;
+};
+
+export type RegisterResponse = {
+  message: string;
+  email: string;
+  username: string;
+  generated_password: string | null;
+};
+
+export type GoogleRegisterPending = {
+  registration_id: string;
+  email: string;
+  first_name: string;
+  next_step: string;
+  email_sent?: boolean;
+  email_error?: string | null;
+  confirm_link?: string | null;
+};
+
+export type SendOtpResponse = {
+  message: string;
+  dev_otp: string | null;
+};
+
+export type InvitePreview = {
+  workspace: string;
+  invited_email: string;
+  inviter_name: string;
+  inviter_email: string | null;
+  role: string;
+  first_name: string;
+  last_name: string | null;
+};
+
+export type ConfirmAccountPreview = {
+  email: string;
+  first_name: string;
+  already_confirmed: boolean;
 };
 
 export type TokenResponse = {
@@ -43,6 +83,22 @@ export type Member = {
   role: string;
 };
 
+export type GroupMember = {
+  id: string;
+  name: string;
+  email: string;
+  status: string;
+};
+
+export type TeamGroup = {
+  id: string;
+  name: string;
+  members_count: number;
+  users_count: number;
+  roles_count: number;
+  members: GroupMember[];
+};
+
 export type Lead = {
   id: string;
   company_id: string;
@@ -58,6 +114,60 @@ export type Lead = {
   next_followup: string | null;
   created_at: string;
 };
+
+export type LeadNote = {
+  id: string;
+  lead_id: string;
+  content: string;
+  created_by_id: string | null;
+  created_by_name: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type LeadTimelineEvent = {
+  id: string;
+  lead_id: string;
+  event_type: string;
+  description: string;
+  created_by_id: string | null;
+  created_by_name: string | null;
+  metadata: Record<string, string> | null;
+  created_at: string;
+};
+
+export type LeadActivity = {
+  id: string;
+  lead_id: string;
+  activity_type: string;
+  activity_label: string;
+  title: string | null;
+  notes: string | null;
+  scheduled_at: string | null;
+  completed_at: string | null;
+  is_completed: boolean;
+  assigned_to_id: string | null;
+  assigned_to_name: string | null;
+  created_by_id: string | null;
+  created_by_name: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type LeadActivitiesGrouped = {
+  upcoming: LeadActivity[];
+  completed: LeadActivity[];
+};
+
+export const LEAD_ACTIVITY_TYPES = [
+  { id: "call", label: "Call" },
+  { id: "meeting", label: "Meeting" },
+  { id: "email", label: "Email" },
+  { id: "follow_up", label: "Follow-up" },
+  { id: "task", label: "Task" },
+  { id: "demo", label: "Demo" },
+  { id: "proposal", label: "Proposal" },
+] as const;
 
 export type Client = {
   id: string;
@@ -184,7 +294,7 @@ export type DocumentMeta = {
 };
 
 export type LogoResponse = {
-  logo: string;
+  logo: string | null;
 };
 
 export type MessageResponse = {
@@ -220,6 +330,34 @@ export type WhatsAppTemplate = {
   description: string;
   meta_name: string;
   requires_approval: boolean;
+};
+
+export type IntegrationsStatus = {
+  email: {
+    enabled: boolean;
+    provider: string;
+    from_address: string | null;
+  };
+  whatsapp: {
+    enabled: boolean;
+    provider: string;
+    token_configured: boolean;
+    phone_number_id_configured: boolean;
+    business_account_id: string | null;
+    celery_queue: boolean;
+    auto_on_payment: boolean;
+    auto_on_invoice_send: boolean;
+    webhook_path: string;
+  };
+  meta_business_hint: string;
+};
+
+export type WhatsAppTestResponse = {
+  status: string;
+  phone: string;
+  message_id: string | null;
+  delivery: string;
+  detail: string | null;
 };
 
 export type AIStreamChunk = {

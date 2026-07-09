@@ -187,7 +187,57 @@ body {
   --landing-green: #4f46e5;
   --landing-accent: #6366f1;
   --landing-violet: #8b5cf6;
-  overflow-x: hidden;
+  /* clip (not hidden) keeps position:sticky working against the viewport */
+  overflow-x: clip;
+}
+
+/* ---------- Stacking scroll sections ---------- */
+/* Each panel pins to the top; the next panel scrolls up and paints over it,
+   while the covered panel recedes (scale + dim) into the background. */
+.stack-panel {
+  position: sticky;
+  top: 0;
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+.stack-inner {
+  min-height: 100vh;
+  transform-origin: center top;
+  will-change: transform, filter;
+  transform: scale(1) translateY(0);
+  transition: transform 0.12s linear, filter 0.12s linear;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+/* Soft shadow on the incoming panel edge so the stack looks layered */
+.stack-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  top: -32px;
+  height: 32px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(15, 23, 42, 0.14), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.stack-panel.is-stacking::before {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stack-panel {
+    position: relative;
+    min-height: 0;
+  }
+  .stack-inner {
+    min-height: 0;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
 }
 
 .landing-gradient {

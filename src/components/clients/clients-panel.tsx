@@ -296,9 +296,11 @@ export function ClientsPanel() {
         open={!!aiClientId}
         onClose={() => setAiClientId(null)}
         title="Client welcome email"
-        description="AI onboarding email for your new client"
+        description="AI onboarding email — draft, then send it to the client"
         streamAction="draft-client-welcome"
         body={aiClientId ? { client_id: aiClientId } : {}}
+        sendEndpoint={aiClientId ? `/clients/${aiClientId}/send-email` : undefined}
+        sendLabel={clients.find((c) => c.id === aiClientId)?.email}
       />
     </div>
   );

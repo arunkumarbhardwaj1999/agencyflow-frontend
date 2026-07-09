@@ -7,7 +7,9 @@ import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { useRealtime } from "@/providers/realtime-provider";
 import { useNotificationStore } from "@/stores/notification-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { requestDesktopPermission, getDesktopPermission } from "@/lib/notifications";
+import { ProfileMenu } from "./profile-menu";
 
 export function DashboardHeader({
   title,
@@ -17,6 +19,7 @@ export function DashboardHeader({
   showNewLead?: boolean;
 }) {
   const { events, status, unread, markRead } = useRealtime();
+  const user = useAuthStore((s) => s.user);
   const sound = useNotificationStore((s) => s.sound);
   const desktop = useNotificationStore((s) => s.desktop);
   const setSound = useNotificationStore((s) => s.setSound);
@@ -141,13 +144,16 @@ export function DashboardHeader({
             </div>
           )}
         </div>
-        <button
-          type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 hover:text-indigo-600"
-          aria-label="Settings"
-        >
-          <Settings className="h-4 w-4" />
-        </button>
+        {user?.role === "owner" && (
+          <Link
+            href="/settings/integrations"
+            className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 hover:text-indigo-600"
+            aria-label="Integrations"
+            title="Integrations (Email & WhatsApp)"
+          >
+            <Settings className="h-4 w-4" />
+          </Link>
+        )}
         {showNewLead && (
           <Link href="/leads">
             <Button className="h-10 gap-2">
@@ -156,6 +162,7 @@ export function DashboardHeader({
             </Button>
           </Link>
         )}
+        <ProfileMenu />
       </div>
     </header>
   );

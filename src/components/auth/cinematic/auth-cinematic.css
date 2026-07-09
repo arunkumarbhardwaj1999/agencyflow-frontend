@@ -8,6 +8,9 @@
   /* smoother, more cinematic easing (easeInOutQuart) */
   --auth-ease: cubic-bezier(0.76, 0, 0.24, 1);
   --auth-duration: 950ms;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
 }
 
 /* ---------- Background ---------- */
@@ -53,6 +56,23 @@
     0 24px 60px -20px rgba(79, 70, 229, 0.25),
     0 12px 40px -16px rgba(15, 23, 42, 0.18);
   background: var(--auth-surface);
+}
+
+.auth-card-header {
+  flex-shrink: 0;
+}
+
+.auth-card-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+@media (min-width: 768px) {
+  .auth-card.flex {
+    display: flex;
+    flex-direction: column;
+  }
 }
 
 /* ---------- Diagonal accent panel ---------- */
@@ -152,6 +172,27 @@
   justify-content: flex-end;
   padding-left: 2rem;
 }
+
+/* Register form is tall — scroll from top instead of vertically centering (which hid fields). */
+.auth-form-side--scroll {
+  align-items: flex-start;
+  justify-content: flex-end;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-top: 1.75rem;
+  padding-bottom: 1.75rem;
+}
+
+.auth-form-side--scroll .auth-register-form > * {
+  animation: auth-field-rise 0.5s var(--auth-ease) backwards;
+}
+
+.auth-form-side--scroll .auth-register-form > *:nth-child(1) { animation-delay: 0.04s; }
+.auth-form-side--scroll .auth-register-form > *:nth-child(2) { animation-delay: 0.08s; }
+.auth-form-side--scroll .auth-register-form > *:nth-child(3) { animation-delay: 0.12s; }
+.auth-form-side--scroll .auth-register-form > *:nth-child(4) { animation-delay: 0.16s; }
+.auth-form-side--scroll .auth-register-form > *:nth-child(5) { animation-delay: 0.2s; }
+.auth-form-side--scroll .auth-register-form > *:nth-child(n + 6) { animation-delay: 0.24s; }
 
 .auth-form-side--active {
   opacity: 1;
@@ -328,6 +369,10 @@
   transition: color 0.35s var(--auth-ease), transform 0.35s var(--auth-ease);
 }
 
+.auth-field-icon.right-9 {
+  right: 2.25rem;
+}
+
 .auth-field-wrap:focus-within .auth-field-icon {
   color: var(--auth-accent);
   transform: translateY(-50%) scale(1.12);
@@ -418,6 +463,55 @@
   cursor: not-allowed;
 }
 
+.auth-google-block {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.auth-google-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.auth-google-overlay {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0.011;
+  cursor: pointer;
+}
+
+.auth-google-overlay > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.auth-google-overlay iframe {
+  width: 100% !important;
+  min-height: 48px !important;
+  margin: 0 !important;
+}
+
 .auth-link {
   color: #4f46e5;
   font-weight: 500;
@@ -434,9 +528,9 @@
   .auth-card {
     display: flex !important;
     flex-direction: column;
-    height: auto !important;
-    min-height: min(92vh, 860px);
-    max-height: none;
+    height: 100% !important;
+    max-height: 100% !important;
+    min-height: 0;
   }
 
   .auth-diagonal-panel {

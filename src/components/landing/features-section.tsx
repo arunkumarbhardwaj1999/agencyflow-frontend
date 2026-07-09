@@ -30,7 +30,7 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="bg-white py-24 lg:py-32">
+    <section id="features" className="flex min-h-screen items-center bg-white py-24">
       <div className="mx-auto max-w-6xl px-6 lg:px-10">
         <Reveal>
           <h2 className="mx-auto max-w-3xl text-center text-3xl font-bold leading-tight text-slate-900 sm:text-4xl lg:text-5xl">

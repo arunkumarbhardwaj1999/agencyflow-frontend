@@ -95,6 +95,12 @@ export function LeadFormDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leads"] });
+      if (lead) {
+        queryClient.invalidateQueries({ queryKey: ["lead", lead.id] });
+        queryClient.invalidateQueries({ queryKey: ["lead-timeline", lead.id] });
+        queryClient.invalidateQueries({ queryKey: ["lead-activities", lead.id] });
+        queryClient.invalidateQueries({ queryKey: ["lead-notes", lead.id] });
+      }
       reset();
       onOpenChange(false);
     },

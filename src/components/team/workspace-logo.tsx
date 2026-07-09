@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { ImagePlus, Upload } from "lucide-react";
-import { apiUpload } from "@/lib/api";
+import { apiFetch, apiUpload } from "@/lib/api";
 import type { LogoResponse } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,20 @@ export function WorkspaceLogo() {
   const [logo, setLogo] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    let active = true;
+    apiFetch<LogoResponse>("/files/logo")
+      .then((data) => {
+        if (active && data.logo) {
+          setLogo(`${data.logo}${data.logo.includes("?") ? "&" : "?"}t=${Date.now()}`);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const uploadMutation = useMutation({
     mutationFn: (file: File) => {
       const fd = new FormData();
@@ -21,7 +35,9 @@ export function WorkspaceLogo() {
     },
     onSuccess: (data) => {
       setError(null);
-      setLogo(`${data.logo}${data.logo.includes("?") ? "&" : "?"}t=${Date.now()}`);
+      if (data.logo) {
+        setLogo(`${data.logo}${data.logo.includes("?") ? "&" : "?"}t=${Date.now()}`);
+      }
     },
     onError: (err) => setError((err as Error).message),
   });

@@ -1,12 +1,10 @@
 import Link from "next/link";
-import { LandingNav } from "./landing-nav";
 import { StatsBar } from "./stats-bar";
 
 export function HeroSection() {
   return (
     <section className="landing-gradient relative min-h-screen text-white">
       <div className="landing-texture pointer-events-none absolute inset-0 opacity-30" />
-      <LandingNav variant="green" />
 
       <div className="relative mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center px-6 pb-48 pt-28 text-center lg:px-10">
         <p className="text-xs font-bold uppercase tracking-[0.35em] text-white/70">Hello there</p>

@@ -13,6 +13,7 @@ import {
 } from "@dnd-kit/core";
 import { useDroppable } from "@dnd-kit/core";
 import { useDraggable } from "@dnd-kit/core";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { format, isPast, isToday } from "date-fns";
 import { apiFetch } from "@/lib/api";
@@ -84,7 +85,14 @@ function LeadCard({
       className={`cursor-grab rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing ${isDragging ? "opacity-50" : ""}`}
     >
       <div className="flex items-start justify-between gap-2">
-        <p className="font-medium text-slate-900">{lead.name}</p>
+        <Link
+          href={`/leads/${lead.id}`}
+          className="font-medium text-slate-900 hover:text-indigo-600 hover:underline"
+          onPointerDown={stop}
+          onClick={stop}
+        >
+          {lead.name}
+        </Link>
         <div className="flex gap-1">
           <button
             type="button"
@@ -201,6 +209,8 @@ export function LeadsKanban() {
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [search, setSearch] = useState("");
   const [assigneeFilter, setAssigneeFilter] = useState("");
+  const [onlyDueFollowups, setOnlyDueFollowups] = useState(false);
+  const [activeStages, setActiveStages] = useState<string[]>(LEAD_COLUMNS.map((col) => col.id));
   const [aiLeadId, setAiLeadId] = useState<string | null>(null);
   const [followupsOpen, setFollowupsOpen] = useState(false);
 
@@ -255,8 +265,14 @@ export function LeadsKanban() {
 
   const filteredLeads = useMemo(() => {
     const term = search.trim().toLowerCase();
+    const now = Date.now();
     return leads.filter((l) => {
       if (assigneeFilter && l.assigned_user_id !== assigneeFilter) return false;
+      if (!activeStages.includes(l.status)) return false;
+      if (onlyDueFollowups) {
+        const at = l.next_followup ? new Date(l.next_followup).getTime() : Number.NaN;
+        if (!Number.isFinite(at) || at > now) return false;
+      }
       if (!term) return true;
       return (
         l.name.toLowerCase().includes(term) ||
@@ -264,7 +280,18 @@ export function LeadsKanban() {
         (l.email ?? "").toLowerCase().includes(term)
       );
     });
-  }, [leads, search, assigneeFilter]);
+  }, [leads, search, assigneeFilter, activeStages, onlyDueFollowups]);
+
+  const pipelineValue = useMemo(
+    () => filteredLeads.reduce((sum, lead) => sum + Number(lead.value || 0), 0),
+    [filteredLeads],
+  );
+
+  function toggleStage(stageId: string) {
+    setActiveStages((prev) =>
+      prev.includes(stageId) ? prev.filter((id) => id !== stageId) : [...prev, stageId],
+    );
+  }
 
   if (isLoading) return <p className="text-sm text-slate-500">Loading pipeline…</p>;
 
@@ -272,8 +299,8 @@ export function LeadsKanban() {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Sales pipeline</h1>
-          <p className="text-sm text-slate-500">Drag leads across stages</p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Leads</h1>
+          <p className="text-sm text-slate-500">Zoho-style board with draggable stage cards</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setFollowupsOpen(true)} className="gap-2">
@@ -287,28 +314,32 @@ export function LeadsKanban() {
         </div>
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-2">
-        <Input
-          placeholder="Search name, company, email…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="max-w-xs"
-        />
-        <div className="w-44">
-          <Select value={assigneeFilter} onChange={(e) => setAssigneeFilter(e.target.value)}>
-            <option value="">All owners</option>
-            {(members as Member[]).map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </Select>
+      <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+          <p className="text-xs text-slate-500">Visible leads</p>
+          <p className="text-xl font-semibold text-slate-900">{filteredLeads.length}</p>
         </div>
-        {(search || assigneeFilter) && (
-          <Button variant="outline" onClick={() => { setSearch(""); setAssigneeFilter(""); }}>
-            Clear
-          </Button>
-        )}
+        <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+          <p className="text-xs text-slate-500">Pipeline value</p>
+          <p className="text-xl font-semibold text-indigo-700">{formatCurrency(pipelineValue)}</p>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+          <p className="text-xs text-slate-500">Due follow-ups</p>
+          <p className="text-xl font-semibold text-amber-700">
+            {
+              filteredLeads.filter((lead) => {
+                const ts = lead.next_followup ? new Date(lead.next_followup).getTime() : Number.NaN;
+                return Number.isFinite(ts) && ts <= Date.now();
+              }).length
+            }
+          </p>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+          <p className="text-xs text-slate-500">Won deals</p>
+          <p className="text-xl font-semibold text-emerald-700">
+            {filteredLeads.filter((lead) => lead.status === "won").length}
+          </p>
+        </div>
       </div>
 
       {(updateMutation.isError || convertMutation.isError || deleteMutation.isError) && (
@@ -317,37 +348,104 @@ export function LeadsKanban() {
         </p>
       )}
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="flex gap-4 overflow-x-auto pb-4">
-          {LEAD_COLUMNS.map((col) => (
-            <Column
-              key={col.id}
-              status={col.id}
-              title={col.title}
-              leads={filteredLeads.filter((l) => l.status === col.id)}
-              memberMap={memberMap}
-              onConvertLead={(lead) => convertMutation.mutate(lead.id)}
-              onEditLead={(lead) => { setEditingLead(lead); setFormOpen(true); }}
-              onDeleteLead={(lead) => {
-                if (confirm(`Delete lead "${lead.name}"?`)) deleteMutation.mutate(lead.id);
-              }}
-              onAILead={(lead) => setAiLeadId(lead.id)}
+      <div className="flex flex-col gap-4 lg:flex-row">
+        <aside className="w-full shrink-0 rounded-2xl border border-slate-200 bg-white p-4 lg:w-[280px]">
+          <p className="text-sm font-semibold text-slate-800">Filter Leads</p>
+          <div className="mt-3 space-y-3">
+            <Input
+              placeholder="Search name, company, email…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
-          ))}
-        </div>
-        <DragOverlay>
-          {activeLead ? (
-            <div className="w-64 rounded-lg border bg-white p-3 shadow-lg">
-              <p className="font-medium">{activeLead.name}</p>
+            <Select value={assigneeFilter} onChange={(e) => setAssigneeFilter(e.target.value)}>
+              <option value="">All owners</option>
+              {(members as Member[]).map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
+            </Select>
+            <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm">
+              <input
+                type="checkbox"
+                checked={onlyDueFollowups}
+                onChange={(e) => setOnlyDueFollowups(e.target.checked)}
+              />
+              Show only due follow-ups
+            </label>
+          </div>
+
+          <div className="mt-4 border-t border-slate-100 pt-4">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Stage filter</p>
+            <div className="space-y-2">
+              {LEAD_COLUMNS.map((col) => (
+                <label key={col.id} className="flex cursor-pointer items-center justify-between rounded-md px-1 py-1 text-sm text-slate-700 hover:bg-slate-50">
+                  <span className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={activeStages.includes(col.id)}
+                      onChange={() => toggleStage(col.id)}
+                    />
+                    {col.title}
+                  </span>
+                  <Badge variant="secondary">
+                    {filteredLeads.filter((lead) => lead.status === col.id).length}
+                  </Badge>
+                </label>
+              ))}
             </div>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+          </div>
+
+          {(search || assigneeFilter || onlyDueFollowups || activeStages.length !== LEAD_COLUMNS.length) && (
+            <Button
+              variant="outline"
+              className="mt-4 w-full"
+              onClick={() => {
+                setSearch("");
+                setAssigneeFilter("");
+                setOnlyDueFollowups(false);
+                setActiveStages(LEAD_COLUMNS.map((col) => col.id));
+              }}
+            >
+              Reset filters
+            </Button>
+          )}
+        </aside>
+
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100/40 p-3">
+            <div className="flex gap-4 overflow-x-auto pb-2">
+              {LEAD_COLUMNS.filter((col) => activeStages.includes(col.id)).map((col) => (
+                <Column
+                  key={col.id}
+                  status={col.id}
+                  title={col.title}
+                  leads={filteredLeads.filter((l) => l.status === col.id)}
+                  memberMap={memberMap}
+                  onConvertLead={(lead) => convertMutation.mutate(lead.id)}
+                  onEditLead={(lead) => { setEditingLead(lead); setFormOpen(true); }}
+                  onDeleteLead={(lead) => {
+                    if (confirm(`Delete lead "${lead.name}"?`)) deleteMutation.mutate(lead.id);
+                  }}
+                  onAILead={(lead) => setAiLeadId(lead.id)}
+                />
+              ))}
+            </div>
+          </div>
+          <DragOverlay>
+            {activeLead ? (
+              <div className="w-64 rounded-lg border bg-white p-3 shadow-lg">
+                <p className="font-medium">{activeLead.name}</p>
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      </div>
 
       <LeadFormDialog
         open={formOpen}

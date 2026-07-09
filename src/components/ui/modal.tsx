@@ -21,6 +21,7 @@ export function Modal({
   size = "md",
   children,
   footer,
+  closable = true,
 }: {
   open: boolean;
   onClose: () => void;
@@ -30,9 +31,10 @@ export function Modal({
   size?: ModalSize;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  closable?: boolean;
 }) {
   useEffect(() => {
-    if (!open) return;
+    if (!open || !closable) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
@@ -43,14 +45,23 @@ export function Modal({
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
     };
-  }, [open, onClose]);
+  }, [open, onClose, closable]);
+
+  useEffect(() => {
+    if (!open || closable) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open, closable]);
 
   if (!open) return null;
 
   return (
     <div
       className="animate-overlay-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm"
-      onClick={onClose}
+      onClick={closable ? onClose : undefined}
       role="dialog"
       aria-modal="true"
     >
@@ -75,14 +86,16 @@ export function Modal({
               {description && <p className="mt-0.5 text-sm text-slate-500">{description}</p>}
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          {closable && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 pb-2">{children}</div>

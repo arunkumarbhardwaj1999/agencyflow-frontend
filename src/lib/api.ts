@@ -20,7 +20,12 @@ function formatApiError(detail: unknown): string {
     return detail
       .map((item: ValidationIssue) => {
         const field = item.loc?.filter((p) => p !== "body").join(".") || "field";
-        const label = field === "slug" ? "Workspace slug" : field;
+        const label =
+          field === "slug"
+            ? "Workspace URL"
+            : field === "username"
+              ? "Username"
+              : field;
         return `${label}: ${item.msg ?? "invalid"}`;
       })
       .join(" · ");

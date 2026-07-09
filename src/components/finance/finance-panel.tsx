@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -20,6 +21,7 @@ import {
 import { apiBlob, apiFetch } from "@/lib/api";
 import type {
   Client,
+  IntegrationsStatus,
   Invoice,
   MessageResponse,
   PaymentLinkResponse,
@@ -39,6 +41,7 @@ import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { Reveal } from "@/components/ui/reveal";
 import { Modal } from "@/components/ui/modal";
 import { AIResultModal } from "@/components/ai/ai-result-modal";
+import { useAuthStore } from "@/stores/auth-store";
 
 const schema = z.object({
   client_id: z.string().min(1, "Select a client"),
@@ -69,6 +72,7 @@ const n = (v: string) => parseFloat(v) || 0;
 
 export function FinancePanel() {
   const queryClient = useQueryClient();
+  const user = useAuthStore((s) => s.user);
   const [showModal, setShowModal] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [waTemplate, setWaTemplate] = useState("payment_reminder");
@@ -89,6 +93,11 @@ export function FinancePanel() {
   const { data: waTemplates = [] } = useQuery({
     queryKey: ["whatsapp-templates"],
     queryFn: () => apiFetch<WhatsAppTemplate[]>("/whatsapp/templates"),
+  });
+  const { data: integrations } = useQuery({
+    queryKey: ["integrations-status"],
+    queryFn: () => apiFetch<IntegrationsStatus>("/integrations/status"),
+    enabled: user?.role === "owner",
   });
 
   const { register, handleSubmit, reset, control, watch, formState: { errors } } = useForm<FormValues>({
@@ -245,6 +254,24 @@ export function FinancePanel() {
         <StatCard label="Collected" value={totalPaid} icon={CheckCircle2} accent="emerald" currency />
         <StatCard label="Pending" value={totalPending} icon={Clock3} accent="amber" currency />
       </div>
+
+      {user?.role === "owner" && integrations && !integrations.whatsapp.enabled && (
+        <div className="flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-2">
+            <MessageCircle className="mt-0.5 h-5 w-5 shrink-0" />
+            <div>
+              <p className="font-medium">WhatsApp mock mode</p>
+              <p className="text-amber-900/80">
+                Messages sirf log honge jab tak Meta API connect nahi hoti. Agency-flow business
+                account ready hai — ab token setup karo.
+              </p>
+            </div>
+          </div>
+          <Button asChild size="sm" variant="outline" className="shrink-0 border-amber-300 bg-white">
+            <Link href="/settings/integrations">Connect WhatsApp</Link>
+          </Button>
+        </div>
+      )}
 
       <Modal
         open={showModal}

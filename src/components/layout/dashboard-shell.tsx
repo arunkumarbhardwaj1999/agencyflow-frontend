@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { AppSidebar } from "./app-sidebar";
+import { PasswordUpdateBanner } from "@/components/auth/password-update-banner";
+import { PasswordChangeProvider } from "@/components/auth/password-change-context";
 import { DashboardHeader } from "./dashboard-header";
 import { LiveToastStack } from "@/components/realtime/live-toast-stack";
 import { RealtimeProvider, useRealtime } from "@/providers/realtime-provider";
@@ -20,6 +22,8 @@ const pageTitles: Record<string, string> = {
   "/projects": "Projects",
   "/finance": "Finance",
   "/portal": "Client portal",
+  "/settings/integrations": "Integrations",
+  "/settings/profile": "Profile",
 };
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
@@ -50,7 +54,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     if (isError) router.replace("/login");
   }, [data, isError, router, setUser, pathname]);
 
-  const title = pageTitles[pathname] ?? "AgencyFlow";
+  const title = pathname.startsWith("/leads/") ? "Lead details" : (pageTitles[pathname] ?? "AgencyFlow");
 
   if (isLoading || !data) {
     return (
@@ -74,15 +78,18 @@ function ShellInner({ title, children }: { title: string; children: React.ReactN
   const { events } = useRealtime();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f6f8fc]">
-      <AppSidebar />
-      <main className="flex-1 overflow-y-auto">
-        <div className="w-full px-6 py-6 lg:px-8 xl:px-10">
-          <DashboardHeader title={title} showNewLead={title === "Dashboard"} />
-          {children}
-        </div>
-      </main>
-      <LiveToastStack events={events} />
-    </div>
+    <PasswordChangeProvider>
+      <div className="flex h-screen overflow-hidden bg-[#f6f8fc]">
+        <AppSidebar />
+        <main className="flex-1 overflow-y-auto">
+          <div className="w-full px-6 py-6 lg:px-8 xl:px-10">
+            <DashboardHeader title={title} showNewLead={title === "Dashboard"} />
+            <PasswordUpdateBanner />
+            {children}
+          </div>
+        </main>
+        <LiveToastStack events={events} />
+      </div>
+    </PasswordChangeProvider>
   );
 }

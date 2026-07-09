@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
   return (
     <AuthSimpleShell
       title="Forgot password"
-      subtitle="Enter your work email to generate a reset token."
+      subtitle="Enter your work email. We'll send a password reset link."
     >
       <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4">
         <div>
@@ -51,18 +51,22 @@ export default function ForgotPasswordPage() {
         {mutation.isError && <p className="text-sm text-red-600">{(mutation.error as Error).message}</p>}
         {mutation.isSuccess && (
           <div className="rounded-lg bg-indigo-50 px-3 py-2 text-sm text-indigo-700">
-            {accountEmail ? (
+            {token ? (
               <p>
-                Token created for <strong>{accountEmail}</strong>. Use this same email to log in after reset.
+                Email could not be delivered. Use the temporary reset token below for development.
+              </p>
+            ) : accountEmail ? (
+              <p>
+                If this account exists, a reset link has been sent to <strong>{accountEmail}</strong>.
               </p>
             ) : (
-              <p>If that email is registered, a token was created. Check the email you entered.</p>
+              <p>If that email is registered, a reset link has been sent.</p>
             )}
             {token && <p className="mt-2 break-all font-mono text-xs">{token}</p>}
           </div>
         )}
         <Button type="submit" className="h-11 w-full" disabled={mutation.isPending}>
-          {mutation.isPending ? "Generating..." : "Generate reset token"}
+          {mutation.isPending ? "Sending..." : "Send reset link"}
         </Button>
       </form>
       <p className="mt-4 text-sm">
@@ -74,7 +78,7 @@ export default function ForgotPasswordPage() {
           }
           className="text-indigo-600 hover:underline"
         >
-          Go to reset password
+          Reset password page
         </Link>
         {" · "}
         <Link href="/login" className="text-indigo-600 hover:underline">

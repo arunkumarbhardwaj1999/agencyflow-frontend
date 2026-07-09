@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { LayoutGrid } from "lucide-react";
+import { SiteMenu } from "@/components/landing/site-menu";
 
 const features = [
   "Multi-tenant workspace with role-based access",
@@ -64,7 +65,10 @@ export function AuthSimpleShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="relative flex min-h-screen bg-white">
+      <div className="absolute right-6 top-6 z-20">
+        <SiteMenu tone="solid" showRegister={false} />
+      </div>
       <AuthBrandPanel />
       <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-10 sm:px-12">
         <AuthMobileBrand />
