@@ -1,25 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, isPast, isToday } from "date-fns";
 import {
   ArrowLeft,
+  Handshake,
   Mail,
-  MessageCircle,
   Sparkles,
-  Upload,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
-import { LEAD_COLUMNS, type Lead, type LeadTimelineEvent, type Member } from "@/lib/types";
+import { LEAD_COLUMNS, type Deal, type Lead, type LeadTimelineEvent, type Member } from "@/lib/types";
 import { useMembers } from "@/lib/use-members";
 import { formatCurrency } from "@/lib/utils";
 import { AIResultModal } from "@/components/ai/ai-result-modal";
 import { LeadActivities } from "@/components/leads/lead-activities";
+import { LeadAttachments } from "@/components/leads/lead-attachments";
+import { LeadEmailHistory } from "@/components/leads/lead-email-history";
 import { LeadNotes } from "@/components/leads/lead-notes";
 import { LeadFormDialog } from "@/components/leads/lead-form-dialog";
+import { Record360Panel } from "@/components/record-360/record-360-panel";
 import { LeadTimeline } from "@/components/leads/lead-timeline";
+import { LeadWhatsAppHistory } from "@/components/leads/lead-whatsapp-history";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -40,14 +44,12 @@ function followupText(iso: string | null) {
 }
 
 export function LeadDetailView({ leadId }: { leadId: string }) {
+  const router = useRouter();
   const queryClient = useQueryClient();
-  const fileRef = useRef<HTMLInputElement>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [emailOpen, setEmailOpen] = useState(false);
-  const [whatsappOpen, setWhatsappOpen] = useState(false);
   const [emailContent, setEmailContent] = useState("");
-  const [whatsappText, setWhatsappText] = useState("");
 
   const { data: lead, isLoading, isError } = useQuery({
     queryKey: ["lead", leadId],
@@ -68,6 +70,10 @@ export function LeadDetailView({ leadId }: { leadId: string }) {
     queryClient.invalidateQueries({ queryKey: ["lead-timeline", leadId] });
     queryClient.invalidateQueries({ queryKey: ["lead-activities", leadId] });
     queryClient.invalidateQueries({ queryKey: ["lead-notes", leadId] });
+    queryClient.invalidateQueries({ queryKey: ["lead-attachments", leadId] });
+    queryClient.invalidateQueries({ queryKey: ["lead-emails", leadId] });
+    queryClient.invalidateQueries({ queryKey: ["record-360", "lead", leadId] });
+    queryClient.invalidateQueries({ queryKey: ["lead-messaging", leadId] });
     queryClient.invalidateQueries({ queryKey: ["leads"] });
   };
 
@@ -84,37 +90,17 @@ export function LeadDetailView({ leadId }: { leadId: string }) {
     },
   });
 
-  const whatsappMutation = useMutation({
-    mutationFn: (message: string) =>
-      apiFetch(`/leads/${leadId}/whatsapp`, {
+  const createDealMutation = useMutation({
+    mutationFn: () =>
+      apiFetch<Deal>(`/leads/${leadId}/create-deal`, {
         method: "POST",
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({}),
       }),
-    onSuccess: () => {
-      setWhatsappText("");
-      setWhatsappOpen(false);
+    onSuccess: (deal) => {
       invalidate();
+      queryClient.invalidateQueries({ queryKey: ["deals-kanban"] });
+      router.push(`/deals/${deal.id}`);
     },
-  });
-
-  const uploadMutation = useMutation({
-    mutationFn: async (file: File) => {
-      const form = new FormData();
-      form.append("file", file);
-      const base = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
-      const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
-      const res = await fetch(`${base}/leads/${leadId}/attachments`, {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: form,
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.detail ?? "Upload failed");
-      }
-      return res.json();
-    },
-    onSuccess: invalidate,
   });
 
   const convertMutation = useMutation({
@@ -170,39 +156,33 @@ export function LeadDetailView({ leadId }: { leadId: string }) {
             <Mail className="mr-1 h-4 w-4" />
             Send email
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setWhatsappOpen(true)} disabled={!lead.phone}>
-            <MessageCircle className="mr-1 h-4 w-4" />
-            WhatsApp
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => fileRef.current?.click()}
-            disabled={uploadMutation.isPending}
-          >
-            <Upload className="mr-1 h-4 w-4" />
-            Upload file
-          </Button>
+          {lead.status !== "won" && lead.status !== "lost" && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => createDealMutation.mutate()}
+              disabled={createDealMutation.isPending}
+            >
+              <Handshake className="mr-1 h-4 w-4" />
+              Create deal
+            </Button>
+          )}
           {lead.status === "won" && (
             <Button size="sm" onClick={() => convertMutation.mutate()} disabled={convertMutation.isPending}>
               Convert to client
             </Button>
           )}
         </div>
-        <input
-          ref={fileRef}
-          type="file"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) uploadMutation.mutate(file);
-            e.target.value = "";
-          }}
-        />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
         <div className="space-y-6">
+          <Record360Panel
+            entityType="lead"
+            entityId={leadId}
+            sections={["insights", "related", "meetings", "internal_comments"]}
+          />
+
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Lead information</h2>
@@ -259,12 +239,42 @@ export function LeadDetailView({ leadId }: { leadId: string }) {
         <div className="space-y-6">
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Attachments</h2>
+              <p className="mt-1 text-xs text-slate-400">
+                Proposals, quotations, GST docs, and reference images.
+              </p>
+            </div>
+            <LeadAttachments leadId={leadId} onChanged={invalidate} />
+          </section>
+
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-4">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Activities</h2>
               <p className="mt-1 text-xs text-slate-400">
                 Sales actions — calls, meetings, demos, follow-ups logged by your team.
               </p>
             </div>
             <LeadActivities leadId={leadId} onChanged={invalidate} />
+          </section>
+
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-4">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Emails</h2>
+              <p className="mt-1 text-xs text-slate-400">
+                Outgoing emails sent from the CRM with delivery and open status.
+              </p>
+            </div>
+            <LeadEmailHistory leadId={leadId} />
+          </section>
+
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-4">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">WhatsApp</h2>
+              <p className="mt-1 text-xs text-slate-400">
+                Message history — full integration coming soon. Use email for now.
+              </p>
+            </div>
+            <LeadWhatsAppHistory leadId={leadId} />
           </section>
 
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -330,37 +340,9 @@ export function LeadDetailView({ leadId }: { leadId: string }) {
         </div>
       </Modal>
 
-      <Modal
-        open={whatsappOpen}
-        onClose={() => setWhatsappOpen(false)}
-        title="Send WhatsApp"
-        description={lead.phone ? `To ${lead.phone}` : undefined}
-        footer={
-          <>
-            <Button variant="outline" onClick={() => setWhatsappOpen(false)}>Cancel</Button>
-            <Button
-              disabled={whatsappMutation.isPending || !whatsappText.trim()}
-              onClick={() => whatsappMutation.mutate(whatsappText.trim())}
-            >
-              {whatsappMutation.isPending ? "Sending…" : "Send WhatsApp"}
-            </Button>
-          </>
-        }
-      >
-        <Textarea
-          value={whatsappText}
-          onChange={(e) => setWhatsappText(e.target.value)}
-          rows={5}
-          placeholder="Hi, following up on our conversation…"
-        />
-        {whatsappMutation.isError && (
-          <p className="mt-2 text-sm text-red-600">{(whatsappMutation.error as Error).message}</p>
-        )}
-      </Modal>
-
-      {(convertMutation.isError || uploadMutation.isError) && (
+      {(convertMutation.isError || createDealMutation.isError) && (
         <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
-          {((convertMutation.error ?? uploadMutation.error) as Error).message}
+          {((convertMutation.error ?? createDealMutation.error) as Error).message}
         </p>
       )}
     </div>
