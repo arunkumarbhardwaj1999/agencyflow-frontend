@@ -6,6 +6,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { usePasswordChange } from "@/components/auth/password-change-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { HrPanel } from "@/components/hr/hr-panel";
 
 function initials(first: string, last?: string | null) {
   return `${first.charAt(0)}${last?.charAt(0) ?? ""}`.toUpperCase();
@@ -103,6 +104,8 @@ export function ProfilePanel() {
           </Card>
         )}
       </div>
+
+      {user.role === "employee" && <HrPanel selfOnly />}
     </div>
   );
 }

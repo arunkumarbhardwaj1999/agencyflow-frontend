@@ -34,36 +34,36 @@ function StatusPill({ ok, label }: { ok: boolean; label: string }) {
 const metaSteps = [
   {
     title: "Meta Business portfolio ready",
-    detail: 'Aapka "Agency-flow" business account ban chuka hai.',
+    detail: 'Your "Agency-flow" business account is ready.',
     done: true,
     href: "https://business.facebook.com/latest/settings/business_info",
   },
   {
-    title: "Developer app banao",
-    detail: "Business type app banao aur Agency-flow portfolio se link karo.",
+    title: "Create a developer app",
+    detail: "Create a Business-type app and link it to the Agency-flow portfolio.",
     done: false,
     href: "https://developers.facebook.com/apps/create/",
   },
   {
-    title: "WhatsApp product add karo",
+    title: "Add the WhatsApp product",
     detail: "App dashboard → Add product → WhatsApp → API Setup.",
     done: false,
     href: "https://developers.facebook.com/apps/",
   },
   {
-    title: "Test phone verify karo",
-    detail: "API Setup → To field mein apna mobile add karo (OTP). Dev mode mein sirf ye numbers ko message jayega.",
+    title: "Verify a test phone",
+    detail: "API Setup → add your mobile in the To field (OTP). In Dev mode, only those numbers receive messages.",
     done: false,
     href: "https://developers.facebook.com/apps/",
   },
   {
-    title: "Credentials .env mein daalo",
-    detail: "WHATSAPP_TOKEN + WHATSAPP_PHONE_NUMBER_ID copy karke agencyflow-backend/.env mein paste karo, phir docker restart.",
+    title: "Add credentials to .env",
+    detail: "Copy WHATSAPP_TOKEN and WHATSAPP_PHONE_NUMBER_ID into agencyflow-backend/.env, then restart Docker.",
     done: false,
   },
   {
-    title: "Test message bhejo",
-    detail: "Neeche apna phone daal kar test karo.",
+    title: "Send a test message",
+    detail: "Enter your phone below and send a test.",
     done: false,
   },
 ];
@@ -119,7 +119,7 @@ export function IntegrationsPanel() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">Integrations</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Email, WhatsApp (Meta), aur automation — workspace owner ke liye
+          Email, WhatsApp (Meta), and automation for workspace owners
         </p>
       </div>
 
@@ -141,7 +141,7 @@ export function IntegrationsPanel() {
                 Sending from <strong>{data.email.from_address}</strong> via Resend.
               </p>
             ) : (
-              <p>RESEND_API_KEY backend .env mein set karo.</p>
+              <p>Set RESEND_API_KEY in the backend .env file.</p>
             )}
           </CardContent>
         </Card>
@@ -174,13 +174,13 @@ export function IntegrationsPanel() {
             </p>
             {!wa.enabled && (
               <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-amber-900">
-                Abhi mock mode — Finance se WhatsApp dabane par sirf log save hoga. Meta credentials
-                add karke API restart karo.
+                Mock mode — Finance WhatsApp actions only log messages. Add Meta credentials and
+                restart the API to go live.
               </p>
             )}
             {wa.enabled && (
               <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-900">
-                WhatsApp live hai. Finance → invoice row se message bhejo ya auto-triggers use karo.
+                WhatsApp is live. Send from Finance invoice rows or use auto-triggers.
               </p>
             )}
           </CardContent>
@@ -191,7 +191,7 @@ export function IntegrationsPanel() {
         <CardHeader>
           <CardTitle className="text-base">WhatsApp setup — Agency-flow (Meta)</CardTitle>
           <CardDescription>
-            Business portfolio ban chuka hai. Ab developer app + API keys connect karo.
+            Business portfolio is ready. Connect a developer app and API keys next.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -226,7 +226,7 @@ export function IntegrationsPanel() {
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
             <p className="text-sm font-medium text-slate-900">Test WhatsApp message</p>
             <p className="mt-1 text-xs text-slate-500">
-              Apna verified test number use karo (Meta API Setup mein add kiya hua).
+              Use a verified test number (added in Meta API Setup).
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Input
@@ -262,7 +262,7 @@ export function IntegrationsPanel() {
           </div>
 
           <p className="text-xs text-slate-500">
-            Finance mein use karne ke liye client record mein phone number zaroori hai.{" "}
+            Clients need a phone number on their record to use WhatsApp from Finance.{" "}
             <Link href="/finance" className="text-indigo-600 hover:underline">
               Open Finance →
             </Link>

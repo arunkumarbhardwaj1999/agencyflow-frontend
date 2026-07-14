@@ -1,41 +1,118 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
   UserCog,
   Kanban,
+  Handshake,
+  CalendarDays,
+  FileText,
   FolderKanban,
   Receipt,
   LayoutGrid,
   Plug,
+  Briefcase,
+  Workflow,
+  ListTodo,
+  Folders,
+  Settings,
+  BarChart3,
+  Inbox,
+  FileSignature,
+  Clock,
+  UserRound,
 } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
 
 type NavItem = { href: string; label: string; icon: React.ComponentType<{ className?: string }> };
 
-const navGroupsBase: { title: string; items: NavItem[] }[] = [
+const employeeNavGroups: { title: string; items: NavItem[] }[] = [
   {
-    title: "Overview",
-    items: [{ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }],
-  },
-  {
-    title: "Sales",
+    title: "Workspace",
     items: [
-      { href: "/leads", label: "Leads", icon: Kanban },
-      { href: "/clients", label: "Clients", icon: Users },
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/tasks", label: "My Tasks", icon: ListTodo },
+      { href: "/projects", label: "My Projects", icon: FolderKanban },
+      { href: "/calendar", label: "Calendar", icon: CalendarDays },
+      { href: "/documents", label: "Documents", icon: Folders },
+      { href: "/inbox", label: "Messages", icon: Inbox },
+      { href: "/time", label: "Time Tracking", icon: Clock },
+      { href: "/settings/profile", label: "Profile", icon: UserRound },
     ],
   },
+];
+
+const managerNavGroups: { title: string; items: NavItem[] }[] = [
   {
-    title: "Delivery",
-    items: [{ href: "/projects", label: "Projects", icon: FolderKanban }],
+    title: "Workspace",
+    items: [
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/leads", label: "Leads", icon: Kanban },
+      { href: "/deals", label: "Deals", icon: Handshake },
+      { href: "/clients", label: "Clients", icon: Users },
+      { href: "/projects", label: "Projects", icon: FolderKanban },
+      { href: "/tasks", label: "Tasks", icon: ListTodo },
+      { href: "/calendar", label: "Calendar", icon: CalendarDays },
+      { href: "/documents", label: "Documents", icon: Folders },
+      { href: "/inbox", label: "Communication Center", icon: Inbox },
+      { href: "/reports", label: "Reports", icon: BarChart3 },
+    ],
   },
+];
+
+const ownerNavGroups: { title: string; items: NavItem[] }[] = [
   {
-    title: "Finance",
-    items: [{ href: "/finance", label: "Invoices", icon: Receipt }],
+    title: "Command center",
+    items: [
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/leads", label: "Leads", icon: Kanban },
+      { href: "/deals", label: "Deals", icon: Handshake },
+      { href: "/clients", label: "Clients", icon: Users },
+      { href: "/projects", label: "Projects", icon: FolderKanban },
+      { href: "/tasks", label: "Tasks", icon: ListTodo },
+      { href: "/calendar", label: "Calendar", icon: CalendarDays },
+      { href: "/documents", label: "Documents", icon: Folders },
+      { href: "/finance", label: "Finance", icon: Receipt },
+      { href: "/hr", label: "HR", icon: Briefcase },
+      { href: "/automations", label: "Automation", icon: Workflow },
+      { href: "/reports", label: "Reports", icon: BarChart3 },
+      { href: "/team", label: "Team", icon: UserCog },
+      { href: "/settings", label: "Settings", icon: Settings },
+      { href: "/settings/integrations", label: "Integrations", icon: Plug },
+    ],
+  },
+];
+
+const clientNavGroups: { title: string; items: NavItem[] }[] = [
+  {
+    title: "Portal",
+    items: [
+      { href: "/portal", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/portal/projects", label: "Projects", icon: FolderKanban },
+      { href: "/portal/tasks", label: "Tasks", icon: ListTodo },
+      { href: "/portal/files", label: "Files", icon: Folders },
+      { href: "/portal/invoices", label: "Invoices", icon: Receipt },
+      { href: "/portal/approvals", label: "Approvals", icon: FileSignature },
+      { href: "/portal/messages", label: "Messages", icon: Inbox },
+      { href: "/portal/profile", label: "Profile", icon: UserRound },
+    ],
+  },
+];
+
+const fallbackNav: { title: string; items: NavItem[] }[] = [
+  {
+    title: "Overview",
+    items: [
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/leads", label: "Leads", icon: Kanban },
+      { href: "/clients", label: "Clients", icon: Users },
+      { href: "/projects", label: "Projects", icon: FolderKanban },
+      { href: "/hr", label: "HR", icon: Briefcase },
+    ],
   },
 ];
 
@@ -44,22 +121,14 @@ export function AppSidebar() {
   const user = useAuthStore((s) => s.user);
   const navGroups =
     user?.role === "client"
-      ? [{ title: "Portal", items: [{ href: "/portal", label: "My portal", icon: LayoutDashboard }] }]
+      ? clientNavGroups
       : user?.role === "owner"
-        ? [
-            {
-              title: "Overview",
-              items: [...navGroupsBase[0].items, { href: "/team", label: "Team", icon: UserCog }],
-            },
-            ...navGroupsBase.slice(1),
-            {
-              title: "Settings",
-              items: [{ href: "/settings/integrations", label: "Integrations", icon: Plug }],
-            },
-          ]
+        ? ownerNavGroups
         : user?.role === "employee"
-          ? navGroupsBase.filter((g) => g.title !== "Finance" && g.title !== "Sales")
-          : navGroupsBase;
+          ? employeeNavGroups
+          : user?.role === "manager"
+            ? managerNavGroups
+            : fallbackNav;
 
   return (
     <aside className="flex h-screen w-60 shrink-0 flex-col bg-gradient-to-b from-indigo-600 via-indigo-700 to-violet-800 text-white shadow-xl">
@@ -81,7 +150,12 @@ export function AppSidebar() {
             </p>
             <ul className="space-y-0.5">
               {group.items.map(({ href, label, icon: Icon }) => {
-                const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
+                const active =
+                  href === "/settings"
+                    ? pathname === "/settings"
+                    : href === "/portal"
+                      ? pathname === "/portal"
+                      : pathname === href || pathname.startsWith(`${href}/`);
                 return (
                   <li key={`${group.title}-${label}`}>
                     <Link
@@ -93,7 +167,12 @@ export function AppSidebar() {
                           : "text-indigo-100 hover:bg-white/10 hover:text-white",
                       )}
                     >
-                      <Icon className={cn("h-4 w-4 shrink-0 transition-transform group-hover:scale-110", active ? "text-white" : "text-indigo-200")} />
+                      <Icon
+                        className={cn(
+                          "h-4 w-4 shrink-0 transition-transform group-hover:scale-110",
+                          active ? "text-white" : "text-indigo-200",
+                        )}
+                      />
                       {label}
                     </Link>
                   </li>

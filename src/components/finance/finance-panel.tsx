@@ -70,7 +70,7 @@ const statusVariant: Record<string, "success" | "warning" | "danger" | "secondar
 
 const n = (v: string) => parseFloat(v) || 0;
 
-export function FinancePanel() {
+export function FinancePanel({ hideHeading = false }: { hideHeading?: boolean }) {
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
   const [showModal, setShowModal] = useState(false);
@@ -216,12 +216,18 @@ export function FinancePanel() {
         </div>
       )}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Invoices &amp; billing</h1>
-          <p className="text-sm text-slate-500">
-            GST-compliant invoices — auto CGST+SGST or IGST, PDF export, payment links &amp; WhatsApp
-          </p>
-        </div>
+        {!hideHeading ? (
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Invoices &amp; billing</h1>
+            <p className="text-sm text-slate-500">
+              GST-compliant invoices — auto CGST+SGST or IGST, PDF export, payment links &amp; WhatsApp
+            </p>
+          </div>
+        ) : (
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">Invoices &amp; payments</h2>
+          </div>
+        )}
         <div className="flex flex-wrap items-center gap-2">
           <Select
             value={waTemplate}
@@ -262,8 +268,8 @@ export function FinancePanel() {
             <div>
               <p className="font-medium">WhatsApp mock mode</p>
               <p className="text-amber-900/80">
-                Messages sirf log honge jab tak Meta API connect nahi hoti. Agency-flow business
-                account ready hai — ab token setup karo.
+                Messages are logged only until the Meta API is connected. Your Agency-flow business
+                account is ready — add the token in Integrations.
               </p>
             </div>
           </div>

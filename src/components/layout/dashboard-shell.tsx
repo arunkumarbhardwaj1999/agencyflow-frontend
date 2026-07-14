@@ -18,13 +18,73 @@ const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/team": "Team",
   "/leads": "Leads",
+  "/deals": "Deals",
   "/clients": "Clients",
   "/projects": "Projects",
+  "/tasks": "Tasks",
+  "/time": "Time Tracking",
+  "/documents": "Documents",
+  "/inbox": "Communication Center",
+  "/reports": "Reports",
+  "/calendar": "Calendar",
   "/finance": "Finance",
-  "/portal": "Client portal",
+  "/hr": "HR",
+  "/automations": "Automation",
+  "/settings": "Settings",
   "/settings/integrations": "Integrations",
   "/settings/profile": "Profile",
+  "/portal": "Client portal",
+  "/portal/projects": "Projects",
+  "/portal/tasks": "Tasks",
+  "/portal/files": "Files",
+  "/portal/invoices": "Invoices",
+  "/portal/approvals": "Approvals",
+  "/portal/messages": "Messages",
+  "/portal/profile": "Profile",
 };
+
+const EMPLOYEE_PREFIXES = [
+  "/dashboard",
+  "/tasks",
+  "/projects",
+  "/calendar",
+  "/documents",
+  "/inbox",
+  "/time",
+  "/settings/profile",
+  "/hr",
+];
+
+const MANAGER_PREFIXES = [
+  "/dashboard",
+  "/leads",
+  "/deals",
+  "/clients",
+  "/projects",
+  "/tasks",
+  "/calendar",
+  "/documents",
+  "/inbox",
+  "/reports",
+  "/settings/profile",
+  "/hr",
+  "/proposals",
+  "/contracts",
+];
+
+function isAllowed(pathname: string, prefixes: string[]) {
+  return prefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
+function resolveTitle(pathname: string) {
+  if (pathname.startsWith("/portal/projects/")) return "Project";
+  if (pathname.startsWith("/leads/")) return "Lead details";
+  if (pathname.startsWith("/deals/")) return "Deal details";
+  if (pathname.startsWith("/clients/")) return "Client";
+  if (pathname.startsWith("/tasks/")) return "Task";
+  if (pathname.startsWith("/projects/")) return "Project";
+  return pageTitles[pathname] ?? "AgencyFlow";
+}
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -49,12 +109,16 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         router.replace("/portal");
       } else if (data.role !== "client" && pathname.startsWith("/portal")) {
         router.replace("/dashboard");
+      } else if (data.role === "employee" && !isAllowed(pathname, EMPLOYEE_PREFIXES)) {
+        router.replace("/dashboard");
+      } else if (data.role === "manager" && !isAllowed(pathname, MANAGER_PREFIXES)) {
+        router.replace("/dashboard");
       }
     }
     if (isError) router.replace("/login");
   }, [data, isError, router, setUser, pathname]);
 
-  const title = pathname.startsWith("/leads/") ? "Lead details" : (pageTitles[pathname] ?? "AgencyFlow");
+  const title = resolveTitle(pathname);
 
   if (isLoading || !data) {
     return (
@@ -69,13 +133,25 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <RealtimeProvider>
-      <ShellInner title={title}>{children}</ShellInner>
+      <ShellInner title={title} role={data.role}>
+        {children}
+      </ShellInner>
     </RealtimeProvider>
   );
 }
 
-function ShellInner({ title, children }: { title: string; children: React.ReactNode }) {
+function ShellInner({
+  title,
+  role,
+  children,
+}: {
+  title: string;
+  role: string;
+  children: React.ReactNode;
+}) {
   const { events } = useRealtime();
+  const showNewLead =
+    (title === "Dashboard" || title === "Leads") && (role === "owner" || role === "manager");
 
   return (
     <PasswordChangeProvider>
@@ -83,7 +159,7 @@ function ShellInner({ title, children }: { title: string; children: React.ReactN
         <AppSidebar />
         <main className="flex-1 overflow-y-auto">
           <div className="w-full px-6 py-6 lg:px-8 xl:px-10">
-            <DashboardHeader title={title} showNewLead={title === "Dashboard"} />
+            <DashboardHeader title={title} showNewLead={showNewLead} />
             <PasswordUpdateBanner />
             {children}
           </div>
