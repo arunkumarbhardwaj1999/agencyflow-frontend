@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -236,7 +237,11 @@ export function ClientsPanel() {
                       {c.business_name.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <CardTitle className="truncate text-base">{c.business_name}</CardTitle>
+                      <CardTitle className="truncate text-base">
+                        <Link href={`/clients/${c.id}`} className="hover:text-indigo-600 hover:underline">
+                          {c.business_name}
+                        </Link>
+                      </CardTitle>
                       <p className="truncate text-sm text-slate-500">{c.name}</p>
                     </div>
                     {c.gst_number && <Badge variant="violet">GST</Badge>}
@@ -255,6 +260,9 @@ export function ClientsPanel() {
                     <Badge variant="secondary">{c.invoice_count} invoices</Badge>
                   </div>
                   <div className="flex flex-wrap gap-2 pt-2">
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={`/clients/${c.id}`}>360° view</Link>
+                    </Button>
                     <Button variant="outline" size="sm" onClick={() => openEdit(c)}>
                       Edit
                     </Button>

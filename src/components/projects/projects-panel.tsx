@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,6 +23,8 @@ import { Modal } from "@/components/ui/modal";
 import { formatCurrency } from "@/lib/utils";
 import { ProjectDocuments } from "./project-documents";
 import { AIResultModal } from "@/components/ai/ai-result-modal";
+import { useAuthStore } from "@/stores/auth-store";
+import { EmployeeProjectsPanel } from "./employee-projects-panel";
 
 const projectSchema = z.object({
   client_id: z.string().uuid(),
@@ -56,6 +59,15 @@ const priorityColors: Record<string, "default" | "secondary" | "success" | "warn
 const PROJECT_STATUSES = ["planning", "active", "review", "completed"] as const;
 
 export function ProjectsPanel() {
+  const user = useAuthStore((s) => s.user);
+  if (user?.role === "employee") {
+    return <EmployeeProjectsPanel />;
+  }
+
+  return <ProjectsPanelAdmin />;
+}
+
+function ProjectsPanelAdmin() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [aiProjectId, setAiProjectId] = useState<string | null>(null);
@@ -225,7 +237,11 @@ export function ProjectsPanel() {
               <CardHeader>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <CardTitle>{p.title}</CardTitle>
+                    <CardTitle>
+                      <Link href={`/projects/${p.id}`} className="hover:text-indigo-600 hover:underline">
+                        {p.title}
+                      </Link>
+                    </CardTitle>
                     <CardDescription>{formatCurrency(p.budget)} budget</CardDescription>
                   </div>
                   <div className="flex items-center gap-2">
@@ -266,7 +282,10 @@ export function ProjectsPanel() {
                 </div>
               </CardHeader>
               <CardContent>
-                <Button variant="outline" size="sm" onClick={() => setExpandedId(expanded ? null : p.id)}>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/projects/${p.id}`}>360° view</Link>
+                </Button>
+                <Button variant="outline" size="sm" className="ml-2" onClick={() => setExpandedId(expanded ? null : p.id)}>
                   {expanded ? "Hide tasks" : `Tasks (${projectTasks.length})`}
                 </Button>
                 {expanded && (
