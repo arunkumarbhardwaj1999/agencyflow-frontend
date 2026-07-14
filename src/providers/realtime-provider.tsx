@@ -64,13 +64,16 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
     setStatus("connecting");
-    const apiBase = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1").replace(
-      "/api/v1",
-      "",
-    );
-    const wsBase = apiBase.startsWith("https://")
-      ? apiBase.replace("https://", "wss://")
-      : apiBase.replace("http://", "ws://");
+    const backendUrl = (
+      process.env.NEXT_PUBLIC_BACKEND_URL ||
+      (process.env.NEXT_PUBLIC_API_URL?.startsWith("http")
+        ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/v1\/?$/, "")
+        : null) ||
+      "http://localhost:8000"
+    ).replace(/\/$/, "");
+    const wsBase = backendUrl.startsWith("https://")
+      ? backendUrl.replace("https://", "wss://")
+      : backendUrl.replace("http://", "ws://");
 
     const ws = new WebSocket(
       `${wsBase}/ws/dashboard/${user.company_id}?token=${encodeURIComponent(token)}`,

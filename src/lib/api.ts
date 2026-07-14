@@ -1,5 +1,5 @@
 import { clearTokens, getAccessToken, getRefreshToken, setTokens } from "./auth";
-import type { TokenResponse } from "./types";
+import type { DuplicateLeadMatch, TokenResponse } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
@@ -9,6 +9,15 @@ export class ApiError extends Error {
     public status: number,
   ) {
     super(message);
+  }
+}
+
+export class ApiConflictError extends ApiError {
+  constructor(
+    message: string,
+    public duplicates: DuplicateLeadMatch[],
+  ) {
+    super(message, 409);
   }
 }
 
@@ -74,7 +83,20 @@ export async function apiFetch<T>(
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
-    throw new ApiError(formatApiError(err.detail ?? res.statusText), res.status);
+    const detail = err.detail;
+    if (
+      res.status === 409 &&
+      detail &&
+      typeof detail === "object" &&
+      Array.isArray((detail as { duplicates?: unknown }).duplicates)
+    ) {
+      const conflict = detail as { message?: string; duplicates: DuplicateLeadMatch[] };
+      throw new ApiConflictError(
+        conflict.message ?? "Possible duplicate lead found",
+        conflict.duplicates,
+      );
+    }
+    throw new ApiError(formatApiError(detail ?? res.statusText), res.status);
   }
 
   if (res.status === 204) return undefined as T;
