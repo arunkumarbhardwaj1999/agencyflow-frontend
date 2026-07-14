@@ -1,5 +1,5 @@
-import { PortalView } from "@/components/portal/portal-view";
+import { PortalDashboard } from "@/components/portal/portal-dashboard";
 
-export default function PortalPage() {
-  return <PortalView />;
+export default function PortalHomePage() {
+  return <PortalDashboard />;
 }
