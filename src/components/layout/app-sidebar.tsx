@@ -8,7 +8,6 @@ import {
   Kanban,
   Handshake,
   CalendarDays,
-  FileText,
   FolderKanban,
   Receipt,
   LayoutGrid,

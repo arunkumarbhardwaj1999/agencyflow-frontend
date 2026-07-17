@@ -20,7 +20,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Modal } from "@/components/ui/modal";
-import { Textarea } from "@/components/ui/textarea";
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-slate-100 text-slate-700",

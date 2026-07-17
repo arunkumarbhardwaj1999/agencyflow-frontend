@@ -156,7 +156,7 @@ export function LeadFormDialog({
       });
       return created;
     },
-    onSuccess: (result) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leads"] });
       setDupOpen(false);
       setPendingData(null);

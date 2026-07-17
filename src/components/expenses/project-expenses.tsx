@@ -143,7 +143,7 @@ export function ProjectExpenses({ projectId }: { projectId: string }) {
                     <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(v: number) => formatCurrency(v)} />
+                <Tooltip formatter={(v) => formatCurrency(Number(v) || 0)} />
               </PieChart>
             </ResponsiveContainer>
           </div>

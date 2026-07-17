@@ -68,7 +68,7 @@ export function ChangePasswordForm({
         method: "POST",
         body: JSON.stringify({ current_password: current, new_password: next }),
       }),
-    onSuccess: async (data) => {
+    onSuccess: async () => {
       setCurrent("");
       setNext("");
       setConfirm("");

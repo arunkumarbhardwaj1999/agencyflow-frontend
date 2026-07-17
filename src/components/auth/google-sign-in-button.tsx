@@ -48,7 +48,7 @@ export function GoogleSignInButton({
   }, []);
 
   const mutation = useMutation({
-    mutationFn: (credential: string) => {
+    mutationFn: async (credential: string): Promise<TokenResponse | GoogleRegisterPending> => {
       if (intent === "register") {
         return apiFetch<GoogleRegisterPending>("/auth/google/register", {
           method: "POST",
@@ -67,12 +67,11 @@ export function GoogleSignInButton({
       });
     },
     onSuccess: (data) => {
-      if (intent === "register") {
-        onRegisterComplete?.(data as GoogleRegisterPending);
+      if ("registration_id" in data) {
+        onRegisterComplete?.(data);
         return;
       }
-      const tokens = data as TokenResponse;
-      setTokens(tokens.access_token, tokens.refresh_token);
+      setTokens(data.access_token, data.refresh_token);
       router.push(intent === "invite" ? "/join/accepted" : "/dashboard");
     },
     onError: (err: Error) => setError(err.message),

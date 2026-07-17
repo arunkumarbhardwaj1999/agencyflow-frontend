@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { format, isToday, isYesterday } from "date-fns";
 import { CheckCircle2, Clock, MessageCircle, XCircle } from "lucide-react";
 import { apiFetch } from "@/lib/api";
-import type { LeadMessagingItem, LeadTimelineEvent } from "@/lib/types";
+import type { LeadTimelineEvent } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 
 function dayLabel(iso: string) {
