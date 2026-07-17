@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import type { OwnerExecutive, OwnerExpense } from "@/lib/types";
-import { formatCurrency, cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
 import { FinancePanel } from "@/components/finance/finance-panel";
 import { Badge } from "@/components/ui/badge";
@@ -48,8 +48,8 @@ export function FinanceWorkspace() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Finance</h1>
-        <p className="text-sm text-slate-500">Invoices, payments, expenses, and profitability.</p>
+        <h1 className="app-page-title">Finance</h1>
+        <p className="app-page-subtitle">Invoices, payments, expenses, and profitability.</p>
       </div>
 
       <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
@@ -58,12 +58,11 @@ export function FinanceWorkspace() {
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
-            className={cn(
-              "rounded-lg px-3 py-1.5 text-sm font-medium transition",
+            className={`rounded-xl px-3.5 py-2 text-sm font-medium transition ${
               tab === t.id
-                ? "bg-indigo-600 text-white"
-                : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50",
-            )}
+                ? "bg-indigo-600 text-white shadow-sm"
+                : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
+            }`}
           >
             {t.label}
           </button>

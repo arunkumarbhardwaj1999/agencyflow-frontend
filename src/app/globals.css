@@ -1,16 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f6f8fc;
+  --background: #f3f5fa;
   --surface: #ffffff;
-  --foreground: #0f172a;
+  --foreground: #0b1220;
   --muted: #64748b;
   --primary: #4f46e5;
   --primary-foreground: #ffffff;
   --ring: #6366f1;
-  --border: #e9edf5;
+  --border: #e4e9f2;
 
-  /* Accent palette (used across charts, badges, stat cards) */
   --accent-indigo: #6366f1;
   --accent-violet: #8b5cf6;
   --accent-sky: #0ea5e9;
@@ -18,8 +17,9 @@
   --accent-amber: #f59e0b;
   --accent-rose: #f43f5e;
 
-  --shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
-  --shadow-lift: 0 8px 16px rgba(15, 23, 42, 0.06), 0 18px 40px rgba(79, 70, 229, 0.12);
+  --shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 28px rgba(15, 23, 42, 0.05);
+  --shadow-lift: 0 10px 20px rgba(15, 23, 42, 0.06), 0 22px 48px rgba(79, 70, 229, 0.1);
+  --radius-card: 1rem;
 }
 
 @theme inline {
@@ -27,37 +27,64 @@
   --color-surface: var(--surface);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-app-sans);
+  --font-mono: var(--font-app-mono);
 }
 
 * {
   border-color: var(--border);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background: var(--background);
+  background:
+    radial-gradient(1200px 600px at 8% -10%, rgba(99, 102, 241, 0.08), transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, rgba(14, 165, 233, 0.06), transparent 50%),
+    var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-app-sans), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "ss01" on, "cv11" on;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  letter-spacing: -0.011em;
 }
 
 /* ---------- Typography helpers ---------- */
 .app-page-title {
-  font-size: 1.5rem;
+  font-size: 1.625rem;
+  line-height: 1.2;
   font-weight: 700;
-  letter-spacing: -0.02em;
-  color: #0f172a;
+  letter-spacing: -0.03em;
+  color: #0b1220;
 }
 
 .app-page-subtitle {
-  font-size: 0.875rem;
+  margin-top: 0.35rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
   color: var(--muted);
 }
 
+.app-section-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: #0f172a;
+}
+
+.app-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
 .gradient-text {
-  background: linear-gradient(120deg, #6366f1, #8b5cf6 55%, #0ea5e9);
+  background: linear-gradient(120deg, #4f46e5, #7c3aed 55%, #0284c7);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -67,7 +94,24 @@ body {
 .surface-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 1rem;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+}
+
+.app-panel {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(8px);
+}
+
+.app-table-wrap {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  background: #fff;
   box-shadow: var(--shadow-soft);
 }
 
@@ -76,8 +120,19 @@ body {
   will-change: transform;
 }
 .card-hover:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
   box-shadow: var(--shadow-lift);
+}
+
+/* ---------- Empty / helper text ---------- */
+.app-empty {
+  border: 1px dashed #dbe3f0;
+  border-radius: 0.9rem;
+  background: #f8fafc;
+  padding: 2rem 1.25rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #64748b;
 }
 
 /* ---------- Animations ---------- */
@@ -93,8 +148,12 @@ body {
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes scale-in {
@@ -109,21 +168,24 @@ body {
 }
 
 @keyframes overlay-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes shimmer {
-  0% { background-position: -468px 0; }
-  100% { background-position: 468px 0; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes float-soft {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
-/* Reveal-on-scroll: starts hidden, animates when .is-visible is added */
 .reveal {
   opacity: 0;
 }
@@ -168,7 +230,7 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #c7d0df;
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: content-box;
@@ -178,7 +240,7 @@ body {
   background-clip: content-box;
 }
 
-/* ---------- Landing page (matches app indigo/violet theme) ---------- */
+/* ---------- Landing page ---------- */
 :root {
   --landing-green: #4f46e5;
 }
@@ -187,13 +249,9 @@ body {
   --landing-green: #4f46e5;
   --landing-accent: #6366f1;
   --landing-violet: #8b5cf6;
-  /* clip (not hidden) keeps position:sticky working against the viewport */
   overflow-x: clip;
 }
 
-/* ---------- Stacking scroll sections ---------- */
-/* Each panel pins to the top; the next panel scrolls up and paints over it,
-   while the covered panel recedes (scale + dim) into the background. */
 .stack-panel {
   position: sticky;
   top: 0;
@@ -206,12 +264,13 @@ body {
   transform-origin: center top;
   will-change: transform, filter;
   transform: scale(1) translateY(0);
-  transition: transform 0.12s linear, filter 0.12s linear;
+  transition:
+    transform 0.12s linear,
+    filter 0.12s linear;
   border-radius: 0;
   overflow: hidden;
 }
 
-/* Soft shadow on the incoming panel edge so the stack looks layered */
 .stack-panel::before {
   content: "";
   position: absolute;
@@ -249,7 +308,8 @@ body {
 }
 
 .landing-texture {
-  background-image: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
     radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.04) 0%, transparent 40%),
     radial-gradient(circle at 60% 80%, rgba(0, 0, 0, 0.15) 0%, transparent 50%);
   background-size: cover;

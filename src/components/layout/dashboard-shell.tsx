@@ -155,13 +155,13 @@ function ShellInner({
 
   return (
     <PasswordChangeProvider>
-      <div className="flex h-screen overflow-hidden bg-[#f6f8fc]">
+      <div className="flex h-screen overflow-hidden bg-transparent">
         <AppSidebar />
-        <main className="flex-1 overflow-y-auto">
-          <div className="w-full px-6 py-6 lg:px-8 xl:px-10">
+        <main className="relative flex-1 overflow-y-auto">
+          <div className="relative w-full px-5 py-5 sm:px-6 lg:px-8 xl:px-10">
             <DashboardHeader title={title} showNewLead={showNewLead} />
             <PasswordUpdateBanner />
-            {children}
+            <div className="animate-fade-in space-y-6">{children}</div>
           </div>
         </main>
         <LiveToastStack events={events} />

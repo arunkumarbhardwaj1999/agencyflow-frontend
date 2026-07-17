@@ -43,7 +43,7 @@ export function StatCard({
     }).format(n || 0);
 
   return (
-    <div className="card-hover group relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.05)]">
+    <div className="card-hover group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_28px_rgba(15,23,42,0.05)] backdrop-blur-sm">
       <div
         className={cn(
           "pointer-events-none absolute -right-6 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl transition-opacity group-hover:opacity-20",
@@ -53,17 +53,17 @@ export function StatCard({
       <div className="flex items-start justify-between">
         <div
           className={cn(
-            "flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-sm ring-4",
+            "flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-sm ring-4",
             a.icon,
             a.ring,
           )}
         >
-          <Icon className="h-5 w-5" />
+          <Icon className="h-[18px] w-[18px]" />
         </div>
         {trend && (
           <span
             className={cn(
-              "flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-semibold",
+              "flex items-center gap-0.5 rounded-md px-2 py-0.5 text-[11px] font-semibold",
               trendUp ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600",
             )}
           >
@@ -72,8 +72,10 @@ export function StatCard({
           </span>
         )}
       </div>
-      <p className="mt-4 text-sm font-medium text-slate-500">{label}</p>
-      <p className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
+      <p className="mt-4 text-[12px] font-semibold uppercase tracking-[0.06em] text-slate-500">
+        {label}
+      </p>
+      <p className="mt-1.5 text-[1.7rem] font-bold tracking-tight text-slate-900 tabular-nums">
         {currency ? (
           <AnimatedCounter value={value} format={formatINR} />
         ) : (

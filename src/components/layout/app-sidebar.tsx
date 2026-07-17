@@ -131,21 +131,26 @@ export function AppSidebar() {
             : fallbackNav;
 
   return (
-    <aside className="flex h-screen w-60 shrink-0 flex-col bg-gradient-to-b from-indigo-600 via-indigo-700 to-violet-800 text-white shadow-xl">
+    <aside className="flex h-screen w-[15.5rem] shrink-0 flex-col border-r border-white/10 bg-gradient-to-b from-[#4338ca] via-[#4f46e5] to-[#5b21b6] text-white shadow-[8px_0_32px_rgba(67,56,202,0.18)]">
       <Link
         href={user?.role === "client" ? "/portal" : "/dashboard"}
-        className="flex h-16 items-center gap-2.5 border-b border-white/10 px-5 transition hover:bg-white/5"
+        className="flex h-[4.25rem] items-center gap-3 border-b border-white/10 px-5 transition hover:bg-white/5"
       >
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/20 backdrop-blur">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 shadow-inner ring-1 ring-white/25 backdrop-blur">
           <LayoutGrid className="h-4 w-4" />
         </div>
-        <span className="text-[15px] font-bold tracking-tight">AgencyFlow</span>
+        <div className="min-w-0">
+          <span className="block truncate text-[15px] font-bold tracking-tight">AgencyFlow</span>
+          <span className="block text-[10px] font-medium uppercase tracking-[0.14em] text-indigo-200/80">
+            CRM workspace
+          </span>
+        </div>
       </Link>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         {navGroups.map((group) => (
           <div key={group.title} className="mb-5">
-            <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-indigo-200/80">
+            <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-indigo-200/75">
               {group.title}
             </p>
             <ul className="space-y-0.5">
@@ -161,19 +166,19 @@ export function AppSidebar() {
                     <Link
                       href={href}
                       className={cn(
-                        "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                        "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all",
                         active
-                          ? "bg-white/20 text-white shadow-sm ring-1 ring-white/10"
-                          : "text-indigo-100 hover:bg-white/10 hover:text-white",
+                          ? "bg-white text-indigo-700 shadow-md shadow-indigo-950/20"
+                          : "text-indigo-50/90 hover:bg-white/10 hover:text-white",
                       )}
                     >
                       <Icon
                         className={cn(
-                          "h-4 w-4 shrink-0 transition-transform group-hover:scale-110",
-                          active ? "text-white" : "text-indigo-200",
+                          "h-4 w-4 shrink-0 transition-transform group-hover:scale-105",
+                          active ? "text-indigo-600" : "text-indigo-200",
                         )}
                       />
-                      {label}
+                      <span className="truncate">{label}</span>
                     </Link>
                   </li>
                 );

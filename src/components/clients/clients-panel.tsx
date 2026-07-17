@@ -139,8 +139,8 @@ export function ClientsPanel() {
     <div>
       <div className="mb-5 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Clients</h1>
-          <p className="text-sm text-slate-500">360° client directory</p>
+          <h1 className="app-page-title">Clients</h1>
+          <p className="app-page-subtitle">360° client directory — accounts, contacts, and portal access</p>
         </div>
         <Button onClick={openCreate} className="gap-2">
           <Plus className="h-4 w-4" />

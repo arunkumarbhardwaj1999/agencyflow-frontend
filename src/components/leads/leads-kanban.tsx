@@ -299,8 +299,8 @@ export function LeadsKanban() {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Leads</h1>
-          <p className="text-sm text-slate-500">Zoho-style board with draggable stage cards</p>
+          <h1 className="app-page-title">Leads</h1>
+          <p className="app-page-subtitle">Pipeline board with draggable stage cards</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setFollowupsOpen(true)} className="gap-2">

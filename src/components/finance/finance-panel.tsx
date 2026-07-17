@@ -215,17 +215,17 @@ export function FinancePanel({ hideHeading = false }: { hideHeading?: boolean })
           {toast}
         </div>
       )}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         {!hideHeading ? (
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Invoices &amp; billing</h1>
-            <p className="text-sm text-slate-500">
+            <h1 className="app-page-title">Invoices &amp; billing</h1>
+            <p className="app-page-subtitle max-w-xl">
               GST-compliant invoices — auto CGST+SGST or IGST, PDF export, payment links &amp; WhatsApp
             </p>
           </div>
         ) : (
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">Invoices &amp; payments</h2>
+            <h2 className="app-section-title text-base">Invoices &amp; payments</h2>
           </div>
         )}
         <div className="flex flex-wrap items-center gap-2">

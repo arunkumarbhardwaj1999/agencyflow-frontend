@@ -190,10 +190,10 @@ export function TeamPanel() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Users</h1>
-          <p className="text-sm text-slate-500">
+          <h1 className="app-page-title">Users</h1>
+          <p className="app-page-subtitle">
             Active users ({activeCount})
             {pendingCount > 0 ? ` · ${pendingCount} pending invite${pendingCount > 1 ? "s" : ""}` : ""}
           </p>
@@ -206,7 +206,7 @@ export function TeamPanel() {
         )}
       </div>
 
-      <div className="flex items-center gap-6 border-b border-slate-200 px-1">
+      <div className="flex items-center gap-1 rounded-xl border border-slate-200/80 bg-white/80 p-1 shadow-sm">
         {[
           { id: "users", label: "Users" },
           { id: "groups", label: "Groups" },
@@ -215,7 +215,11 @@ export function TeamPanel() {
           <button
             key={t.id}
             type="button"
-            className={`border-b-2 pb-2 text-sm ${tab === t.id ? "border-indigo-600 font-semibold text-slate-900" : "border-transparent text-slate-500"}`}
+            className={`rounded-lg px-3.5 py-2 text-sm transition ${
+              tab === t.id
+                ? "bg-indigo-600 font-semibold text-white shadow-sm"
+                : "font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+            }`}
             onClick={() => setTab(t.id as "users" | "groups" | "activate")}
           >
             {t.label}

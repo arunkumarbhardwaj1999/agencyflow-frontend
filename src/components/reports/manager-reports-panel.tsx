@@ -12,27 +12,41 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { BarChart3 } from "lucide-react";
+import {
+  BarChart3,
+  Handshake,
+  IndianRupee,
+  ClipboardCheck,
+  Percent,
+} from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import type { ManagerReports } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
+import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 
 const PROJECT_COLORS = ["#94a3b8", "#0ea5e9", "#f59e0b", "#10b981"];
 
-export function ManagerReportsPanel() {
+export function ManagerReportsPanel({ hideHeader = false }: { hideHeader?: boolean }) {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["manager-reports"],
     queryFn: () => apiFetch<ManagerReports>("/reports/manager"),
   });
 
   if (isLoading) {
-    return <p className="text-sm text-slate-500">Loading reports…</p>;
+    return (
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-32 animate-pulse rounded-2xl bg-slate-100/80" />
+        ))}
+      </div>
+    );
   }
   if (isError || !data) {
-    return <p className="text-sm text-rose-600">Unable to load reports.</p>;
+    return <div className="app-empty text-rose-600">Unable to load reports.</div>;
   }
 
   const projectChart = [
@@ -49,36 +63,34 @@ export function ManagerReportsPanel() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-900">
-          <BarChart3 className="h-6 w-6 text-indigo-600" />
-          Reports
-        </h1>
-        <p className="text-sm text-slate-500">
-          Team productivity, lead conversion, and project health.
-        </p>
-      </div>
+      {!hideHeader && (
+        <PageHeader
+          title="Reports"
+          description="Team productivity, lead conversion, and project health."
+          icon={BarChart3}
+        />
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Conversion rate"
           value={data.lead_conversion.conversion_rate}
-          icon={BarChart3}
+          icon={Percent}
           accent="indigo"
           suffix="%"
         />
-        <StatCard label="Open deals" value={data.open_deals} icon={BarChart3} accent="sky" />
+        <StatCard label="Open deals" value={data.open_deals} icon={Handshake} accent="sky" />
         <StatCard
           label="Paid revenue"
           value={Number(data.revenue_paid) || 0}
-          icon={BarChart3}
+          icon={IndianRupee}
           accent="violet"
           currency
         />
         <StatCard
           label="Pending approvals"
           value={data.pending_approvals}
-          icon={BarChart3}
+          icon={ClipboardCheck}
           accent="amber"
         />
       </div>
@@ -86,37 +98,41 @@ export function ManagerReportsPanel() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Lead conversion</CardTitle>
+            <CardTitle>Lead conversion</CardTitle>
+            <CardDescription>Pipeline outcomes across stages</CardDescription>
           </CardHeader>
           <CardContent>
-            <dl className="mb-4 grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <dt className="text-slate-500">Total</dt>
-                <dd className="font-semibold">{data.lead_conversion.total_leads}</dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">Open</dt>
-                <dd className="font-semibold">{data.lead_conversion.open_leads}</dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">Won</dt>
-                <dd className="font-semibold text-emerald-700">{data.lead_conversion.won}</dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">Lost</dt>
-                <dd className="font-semibold text-rose-600">{data.lead_conversion.lost}</dd>
-              </div>
+            <dl className="mb-5 grid grid-cols-2 gap-3 text-sm">
+              {[
+                ["Total", data.lead_conversion.total_leads],
+                ["Open", data.lead_conversion.open_leads],
+                ["Won", data.lead_conversion.won, "text-emerald-700"],
+                ["Lost", data.lead_conversion.lost, "text-rose-600"],
+              ].map(([label, value, tone]) => (
+                <div key={String(label)} className="rounded-xl bg-slate-50 px-3 py-2.5">
+                  <dt className="app-label">{label}</dt>
+                  <dd className={`mt-1 text-lg font-semibold tabular-nums text-slate-900 ${tone ?? ""}`}>
+                    {value}
+                  </dd>
+                </div>
+              ))}
             </dl>
             <div className="h-56">
               {leadChart.length === 0 ? (
-                <p className="text-sm text-slate-500">No lead data yet.</p>
+                <div className="app-empty">No lead data yet.</div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={leadChart}>
-                    <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#6366f1" radius={[6, 6, 0, 0]} />
+                  <BarChart data={leadChart} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+                    <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                    <Tooltip
+                      contentStyle={{
+                        borderRadius: 12,
+                        border: "1px solid #e2e8f0",
+                        boxShadow: "0 8px 24px rgba(15,23,42,0.08)",
+                      }}
+                    />
+                    <Bar dataKey="value" fill="#6366f1" radius={[8, 8, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -126,30 +142,38 @@ export function ManagerReportsPanel() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Project status</CardTitle>
+            <CardTitle>Project status</CardTitle>
+            <CardDescription>{data.project_status.total} projects total</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="mb-3 text-sm text-slate-500">{data.project_status.total} projects total</p>
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={projectChart} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80}>
+                  <Pie data={projectChart} dataKey="value" nameKey="name" innerRadius={52} outerRadius={82} paddingAngle={2}>
                     {projectChart.map((_, i) => (
                       <Cell key={i} fill={PROJECT_COLORS[i % PROJECT_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: 12,
+                      border: "1px solid #e2e8f0",
+                      boxShadow: "0 8px 24px rgba(15,23,42,0.08)",
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <ul className="mt-2 flex flex-wrap gap-2 text-xs">
+            <ul className="mt-3 flex flex-wrap gap-2">
               {projectChart.map((p, i) => (
-                <li key={p.name} className="flex items-center gap-1.5">
-                  <span
-                    className="h-2.5 w-2.5 rounded-full"
-                    style={{ background: PROJECT_COLORS[i] }}
-                  />
-                  {p.name}: {p.value}
+                <li key={p.name}>
+                  <Badge variant="secondary" className="gap-1.5 font-medium normal-case tracking-normal">
+                    <span
+                      className="h-2 w-2 rounded-full"
+                      style={{ background: PROJECT_COLORS[i] }}
+                    />
+                    {p.name}: {p.value}
+                  </Badge>
                 </li>
               ))}
             </ul>
@@ -159,43 +183,41 @@ export function ManagerReportsPanel() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Team productivity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {data.team_productivity.length === 0 ? (
-            <p className="text-sm text-slate-500">No team members to report.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[520px] text-left text-sm">
-                <thead>
-                  <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
-                    <th className="px-2 py-2 font-semibold">Member</th>
-                    <th className="px-2 py-2 font-semibold">Role</th>
-                    <th className="px-2 py-2 font-semibold">Done</th>
-                    <th className="px-2 py-2 font-semibold">Open</th>
-                    <th className="px-2 py-2 font-semibold">Hours (week)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.team_productivity.map((m) => (
-                    <tr key={m.user_id} className="border-b border-slate-100">
-                      <td className="px-2 py-2.5 font-medium text-slate-900">{m.name}</td>
-                      <td className="px-2 py-2.5 capitalize text-slate-600">{m.role}</td>
-                      <td className="px-2 py-2.5">{m.tasks_done}</td>
-                      <td className="px-2 py-2.5">{m.tasks_open}</td>
-                      <td className="px-2 py-2.5">
-                        <Badge variant="secondary">{m.hours_logged_label}</Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-          <p className="mt-4 text-xs text-slate-500">
+          <CardTitle>Team productivity</CardTitle>
+          <CardDescription>
             Deal pipeline {formatCurrency(Number(data.deal_pipeline_value) || 0)} · Outstanding{" "}
             {formatCurrency(Number(data.revenue_outstanding) || 0)}
-          </p>
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="px-0 pb-0 sm:px-0">
+          {data.team_productivity.length === 0 ? (
+            <div className="app-empty mx-5 mb-5">No team members to report.</div>
+          ) : (
+            <Table wrapClassName="rounded-none border-0 shadow-none">
+              <THead>
+                <TR className="hover:bg-transparent">
+                  <TH>Member</TH>
+                  <TH>Role</TH>
+                  <TH>Done</TH>
+                  <TH>Open</TH>
+                  <TH>Hours (week)</TH>
+                </TR>
+              </THead>
+              <TBody>
+                {data.team_productivity.map((m) => (
+                  <TR key={m.user_id}>
+                    <TD className="font-semibold text-slate-900">{m.name}</TD>
+                    <TD className="capitalize text-slate-500">{m.role}</TD>
+                    <TD className="tabular-nums font-medium">{m.tasks_done}</TD>
+                    <TD className="tabular-nums font-medium">{m.tasks_open}</TD>
+                    <TD>
+                      <Badge variant="secondary">{m.hours_logged_label}</Badge>
+                    </TD>
+                  </TR>
+                ))}
+              </TBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

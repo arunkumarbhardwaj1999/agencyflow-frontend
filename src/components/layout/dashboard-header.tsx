@@ -61,11 +61,11 @@ export function DashboardHeader({
         : "bg-slate-300";
 
   return (
-    <header className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+    <header className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/60 pb-5">
       <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
+        <h1 className="app-page-title">{title}</h1>
         <span
-          className={`h-2 w-2 rounded-full ${statusColor}`}
+          className={`h-2 w-2 rounded-full ring-2 ring-white ${statusColor}`}
           title={`Live updates: ${status}`}
         />
       </div>
@@ -77,7 +77,7 @@ export function DashboardHeader({
               setOpen((v) => !v);
               if (!open) markRead();
             }}
-            className="relative flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 hover:text-indigo-600"
+            className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200/80 bg-white/90 text-slate-500 shadow-sm transition-colors hover:bg-white hover:text-indigo-600"
             aria-label="Live activity"
           >
             <Bell className="h-4 w-4" />
@@ -88,11 +88,11 @@ export function DashboardHeader({
             )}
           </button>
           {open && (
-            <div className="absolute right-0 z-50 mt-2 w-80 rounded-xl border border-slate-200 bg-white shadow-xl">
-              <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+            <div className="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.12)] animate-scale-in">
+              <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-4 py-3">
                 <div>
                   <p className="text-sm font-semibold text-slate-900">Live activity</p>
-                  <p className="text-xs text-slate-500 capitalize">{status}</p>
+                  <p className="text-xs capitalize text-slate-500">{status}</p>
                 </div>
                 <div className="flex items-center gap-1">
                   <button
@@ -147,7 +147,7 @@ export function DashboardHeader({
         {user?.role === "owner" && (
           <Link
             href="/settings/integrations"
-            className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 hover:text-indigo-600"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200/80 bg-white/90 text-slate-500 shadow-sm transition-colors hover:bg-white hover:text-indigo-600"
             aria-label="Integrations"
             title="Integrations (Email & WhatsApp)"
           >

@@ -160,8 +160,8 @@ function ProjectsPanelAdmin() {
     <div>
       <div className="mb-5 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Projects &amp; tasks</h1>
-          <p className="text-sm text-slate-500">Track delivery workloads</p>
+          <h1 className="app-page-title">Projects &amp; tasks</h1>
+          <p className="app-page-subtitle">Track delivery workloads and progress</p>
         </div>
         <Button onClick={() => setShowProjectModal(true)} className="gap-2">
           <Plus className="h-4 w-4" />
