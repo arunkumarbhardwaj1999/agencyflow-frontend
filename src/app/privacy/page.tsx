@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Privacy Policy — AgencyFlow",
-};
+export const metadata: Metadata = buildPageMetadata({
+  title: "Privacy Policy",
+  description:
+    "How AgencyFlow collects, stores, and uses workspace data for leads, clients, projects, and invoices.",
+  path: "/privacy",
+});
 
 const sections = [
   {

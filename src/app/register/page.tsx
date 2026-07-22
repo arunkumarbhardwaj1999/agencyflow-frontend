@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AuthPage } from "@/components/auth/auth-page";
+import { buildPageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "Create workspace",
+  description:
+    "Register an AgencyFlow workspace for your Indian digital agency — leads, GST billing, projects, and client portals.",
+  path: "/register",
+});
 
 export default function RegisterPage() {
   return (

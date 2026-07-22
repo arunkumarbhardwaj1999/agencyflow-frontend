@@ -12,11 +12,6 @@ type AnimatedCounterProps = {
   className?: string;
 };
 
-/**
- * Counts up from 0 to `value` the first time it scrolls into view,
- * and re-animates whenever `value` changes. Uses requestAnimationFrame
- * with an ease-out curve for a smooth, professional feel.
- */
 export function AnimatedCounter({
   value,
   duration = 1200,

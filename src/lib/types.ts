@@ -1010,10 +1010,6 @@ export type DocumentMeta = {
   created_at: string;
 };
 
-export type LogoResponse = {
-  logo: string | null;
-};
-
 export type MessageResponse = {
   message: string;
 };

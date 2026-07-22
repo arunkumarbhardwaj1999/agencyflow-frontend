@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Terms of Service — AgencyFlow",
-};
+export const metadata: Metadata = buildPageMetadata({
+  title: "Terms of Service",
+  description:
+    "Terms for using AgencyFlow CRM workspaces, including account responsibility and acceptable use.",
+  path: "/terms",
+});
 
 const sections = [
   {

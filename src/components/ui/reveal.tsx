@@ -6,15 +6,10 @@ import { cn } from "@/lib/utils";
 type RevealProps = {
   children: React.ReactNode;
   className?: string;
-  /** Stagger delay in ms — handy when revealing a list/grid. */
   delay?: number;
   as?: "div" | "li" | "section";
 };
 
-/**
- * Fades + slides its children up the first time they scroll into view.
- * Pure CSS animation toggled by an IntersectionObserver — no extra deps.
- */
 export function Reveal({ children, className, delay = 0, as = "div" }: RevealProps) {
   const ref = useRef<HTMLElement | null>(null);
   const [visible, setVisible] = useState(false);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { AppSidebar } from "./app-sidebar";
@@ -149,17 +149,49 @@ function ShellInner({
   role: string;
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
   const { events } = useRealtime();
+  const [navOpen, setNavOpen] = useState(false);
   const showNewLead =
     (title === "Dashboard" || title === "Leads") && (role === "owner" || role === "manager");
+
+  useEffect(() => {
+    setNavOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!navOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setNavOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [navOpen]);
 
   return (
     <PasswordChangeProvider>
       <div className="flex h-screen overflow-hidden bg-transparent">
-        <AppSidebar />
-        <main className="relative flex-1 overflow-y-auto">
-          <div className="relative w-full px-5 py-5 sm:px-6 lg:px-8 xl:px-10">
-            <DashboardHeader title={title} showNewLead={showNewLead} />
+        {navOpen && (
+          <button
+            type="button"
+            aria-label="Close navigation"
+            className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-[2px] lg:hidden"
+            onClick={() => setNavOpen(false)}
+          />
+        )}
+        <AppSidebar open={navOpen} onClose={() => setNavOpen(false)} />
+        <main className="relative min-w-0 flex-1 overflow-y-auto overflow-x-hidden">
+          <div className="relative w-full px-4 py-4 sm:px-6 sm:py-5 lg:px-8 xl:px-10">
+            <DashboardHeader
+              title={title}
+              showNewLead={showNewLead}
+              onMenuClick={() => setNavOpen(true)}
+            />
             <PasswordUpdateBanner />
             <div className="animate-fade-in space-y-6">{children}</div>
           </div>

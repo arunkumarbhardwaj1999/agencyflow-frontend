@@ -1,11 +1,8 @@
-/* Premium cinematic auth — diagonal panel + form transitions */
-
 .auth-cinematic {
   --auth-accent: #6366f1;
   --auth-accent-dim: #8b5cf6;
   --auth-bg: #f3f5fb;
   --auth-surface: #ffffff;
-  /* smoother, more cinematic easing (easeInOutQuart) */
   --auth-ease: cubic-bezier(0.76, 0, 0.24, 1);
   --auth-duration: 950ms;
   height: 100dvh;
@@ -13,7 +10,6 @@
   overflow: hidden;
 }
 
-/* ---------- Background ---------- */
 .auth-bg-gradient {
   background:
     radial-gradient(ellipse 80% 60% at 18% 20%, rgba(99, 102, 241, 0.14), transparent 55%),
@@ -45,7 +41,6 @@
   animation: auth-gradient-shift 18s ease-in-out infinite;
 }
 
-/* ---------- Card shell ---------- */
 .auth-card {
   position: relative;
   overflow: hidden;
@@ -75,14 +70,12 @@
   }
 }
 
-/* ---------- Diagonal accent panel ---------- */
 .auth-diagonal-panel {
   position: absolute;
   top: 0;
   bottom: 0;
   width: 50%;
   z-index: 1;
-  /* sweeps across after the outgoing fields begin sliding out */
   transition:
     left 0.75s var(--auth-ease) 0.15s,
     right 0.75s var(--auth-ease) 0.15s,
@@ -93,14 +86,12 @@
 .auth-diagonal-panel--login {
   right: 0;
   left: auto;
-  /* slant stays within the right half — never crosses the centre line */
   clip-path: polygon(20% 0, 100% 0, 100% 100%, 2% 100%);
 }
 
 .auth-diagonal-panel--register {
   left: 0;
   right: auto;
-  /* slant stays within the left half — never crosses the centre line */
   clip-path: polygon(0 0, 98% 0, 80% 100%, 0 100%);
 }
 
@@ -127,7 +118,6 @@
   pointer-events: none;
 }
 
-/* Welcome text inside panel */
 .auth-welcome-text {
   text-align: center;
   color: white;
@@ -146,7 +136,6 @@
   transform: translateY(0) scale(1);
 }
 
-/* ---------- Form panels ---------- */
 .auth-form-side {
   position: absolute;
   top: 0;
@@ -160,7 +149,6 @@
   will-change: opacity;
 }
 
-/* push content to the outer edge so the diagonal panel never overlaps it */
 .auth-form-side--left {
   left: 0;
   justify-content: flex-start;
@@ -173,7 +161,6 @@
   padding-left: 2rem;
 }
 
-/* Register form is tall — scroll from top instead of vertically centering (which hid fields). */
 .auth-form-side--scroll {
   align-items: flex-start;
   justify-content: flex-end;
@@ -197,7 +184,6 @@
 .auth-form-side--active {
   opacity: 1;
   pointer-events: auto;
-  /* wait for old fields to leave + panel to sweep before fading in */
   transition-delay: 0.5s;
 }
 
@@ -208,12 +194,6 @@
   transition-delay: 0.35s;
 }
 
-/*
- * Choreographed field motion:
- *   1. outgoing form fields slide out (staggered, 0–0.45s)
- *   2. diagonal panel sweeps across (0.15–0.9s, see panel transition-delay)
- *   3. incoming form fields slide in (staggered, from 0.55s)
- */
 .auth-form-side--active form > *,
 .auth-form-side--active form .grid > * {
   animation: auth-field-rise 0.6s var(--auth-ease) backwards;
@@ -226,7 +206,6 @@
   animation: auth-field-fall 0.45s var(--auth-ease) forwards;
 }
 
-/* incoming stagger on first page load — quick, no panel to wait for */
 .auth-form-side--active form > *:nth-child(1),
 .auth-form-side--active form .grid > *:nth-child(1) { animation-delay: 0.08s; }
 .auth-form-side--active form > *:nth-child(2),
@@ -242,7 +221,6 @@
 .auth-form-side--active form > *:nth-child(n + 7),
 .auth-form-side--active form .grid > *:nth-child(n + 7) { animation-delay: 0.44s; }
 
-/* incoming stagger during a mode switch — waits for the panel sweep */
 .is-switching .auth-form-side--active form > *:nth-child(1),
 .is-switching .auth-form-side--active form .grid > *:nth-child(1) { animation-delay: 0.55s; }
 .is-switching .auth-form-side--active form > *:nth-child(2),
@@ -258,7 +236,6 @@
 .is-switching .auth-form-side--active form > *:nth-child(n + 7),
 .is-switching .auth-form-side--active form .grid > *:nth-child(n + 7) { animation-delay: 0.91s; }
 
-/* outgoing stagger — leaves immediately, top to bottom */
 .auth-form-side--exit-left form > *:nth-child(1),
 .auth-form-side--exit-left form .grid > *:nth-child(1),
 .auth-form-side--exit-right form > *:nth-child(1),
@@ -306,7 +283,6 @@
   }
 }
 
-/* ---------- Auth inputs ---------- */
 .auth-field-input {
   width: 100%;
   border: none;
@@ -341,7 +317,6 @@
   position: relative;
 }
 
-/* animated underline glow that grows from the left on focus */
 .auth-field-wrap::after {
   content: "";
   position: absolute;
@@ -399,7 +374,6 @@
   75% { transform: translateX(4px); }
 }
 
-/* ---------- Buttons ---------- */
 .auth-btn-primary {
   display: flex;
   width: 100%;
@@ -523,7 +497,6 @@
   text-decoration: underline;
 }
 
-/* ---------- Mobile ---------- */
 @media (max-width: 767px) {
   .auth-card {
     display: flex !important;
@@ -560,6 +533,9 @@
     position: relative !important;
     width: 100% !important;
     flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     padding: 1.5rem 1.25rem 2rem;
   }
 

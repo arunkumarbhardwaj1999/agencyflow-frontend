@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Bell, Plus, Settings, Volume2, VolumeX, Monitor } from "lucide-react";
+import { Bell, Menu, Plus, Settings, Volume2, VolumeX, Monitor } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { useRealtime } from "@/providers/realtime-provider";
@@ -14,9 +14,11 @@ import { ProfileMenu } from "./profile-menu";
 export function DashboardHeader({
   title,
   showNewLead = false,
+  onMenuClick,
 }: {
   title: string;
   showNewLead?: boolean;
+  onMenuClick?: () => void;
 }) {
   const { events, status, unread, markRead } = useRealtime();
   const user = useAuthStore((s) => s.user);
@@ -61,15 +63,25 @@ export function DashboardHeader({
         : "bg-slate-300";
 
   return (
-    <header className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/60 pb-5">
-      <div className="flex items-center gap-3">
-        <h1 className="app-page-title">{title}</h1>
+    <header className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/60 pb-4 sm:mb-6 sm:gap-4 sm:pb-5">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+        {onMenuClick && (
+          <button
+            type="button"
+            onClick={onMenuClick}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-white/90 text-slate-600 shadow-sm transition-colors hover:bg-white hover:text-indigo-600 lg:hidden"
+            aria-label="Open menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        )}
+        <h1 className="app-page-title truncate text-[1.35rem] sm:text-[1.625rem]">{title}</h1>
         <span
-          className={`h-2 w-2 rounded-full ring-2 ring-white ${statusColor}`}
+          className={`h-2 w-2 shrink-0 rounded-full ring-2 ring-white ${statusColor}`}
           title={`Live updates: ${status}`}
         />
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
         <div className="relative" ref={panelRef}>
           <button
             type="button"
@@ -88,7 +100,7 @@ export function DashboardHeader({
             )}
           </button>
           {open && (
-            <div className="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.12)] animate-scale-in">
+            <div className="absolute right-0 z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.12)] animate-scale-in">
               <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-4 py-3">
                 <div>
                   <p className="text-sm font-semibold text-slate-900">Live activity</p>
@@ -147,7 +159,7 @@ export function DashboardHeader({
         {user?.role === "owner" && (
           <Link
             href="/settings/integrations"
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200/80 bg-white/90 text-slate-500 shadow-sm transition-colors hover:bg-white hover:text-indigo-600"
+            className="hidden h-10 w-10 items-center justify-center rounded-xl border border-slate-200/80 bg-white/90 text-slate-500 shadow-sm transition-colors hover:bg-white hover:text-indigo-600 sm:flex"
             aria-label="Integrations"
             title="Integrations (Email & WhatsApp)"
           >
@@ -156,9 +168,9 @@ export function DashboardHeader({
         )}
         {showNewLead && (
           <Link href="/leads">
-            <Button className="h-10 gap-2">
+            <Button className="h-10 gap-2 px-3 sm:px-4">
               <Plus className="h-4 w-4" />
-              New lead
+              <span className="hidden sm:inline">New lead</span>
             </Button>
           </Link>
         )}

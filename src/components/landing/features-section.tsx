@@ -1,5 +1,4 @@
 import { Kanban, Receipt, Globe, Users } from "lucide-react";
-import { Reveal } from "@/components/ui/reveal";
 
 const features = [
   {
@@ -30,27 +29,23 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="flex min-h-screen items-center bg-white py-24">
+    <section id="features" className="flex items-center bg-white py-24">
       <div className="mx-auto max-w-6xl px-6 lg:px-10">
-        <Reveal>
-          <h2 className="mx-auto max-w-3xl text-center text-3xl font-bold leading-tight text-slate-900 sm:text-4xl lg:text-5xl">
-            We&apos;ve got everything you need to launch and grow your agency
-          </h2>
-        </Reveal>
+        <h2 className="mx-auto max-w-3xl text-center text-3xl font-bold leading-tight text-slate-900 sm:text-4xl lg:text-5xl">
+          We&apos;ve got everything you need to launch and grow your agency
+        </h2>
 
         <div className="mt-20 grid gap-16 sm:grid-cols-2">
-          {features.map((feature, i) => (
-            <Reveal key={feature.title} delay={i * 80}>
-              <div className="flex gap-6">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center text-[var(--landing-green)]">
-                  <feature.icon className="h-10 w-10 stroke-[1.5]" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-slate-900">{feature.title}</h3>
-                  <p className="mt-3 leading-relaxed text-slate-500">{feature.description}</p>
-                </div>
+          {features.map((feature) => (
+            <div key={feature.title} className="flex gap-6">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center text-indigo-600">
+                <feature.icon className="h-10 w-10 stroke-[1.5]" />
               </div>
-            </Reveal>
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">{feature.title}</h3>
+                <p className="mt-3 leading-relaxed text-slate-500">{feature.description}</p>
+              </div>
+            </div>
           ))}
         </div>
       </div>

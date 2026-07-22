@@ -297,15 +297,16 @@ export function LeadsKanban() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <div>
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="app-page-title">Leads</h1>
           <p className="app-page-subtitle">Pipeline board with draggable stage cards</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={() => setFollowupsOpen(true)} className="gap-2">
             <Sparkles className="h-4 w-4" />
-            AI follow-ups
+            <span className="hidden sm:inline">AI follow-ups</span>
+            <span className="sm:hidden">AI</span>
           </Button>
           <Button onClick={() => { setEditingLead(null); setFormOpen(true); }} className="gap-2">
             <Plus className="h-4 w-4" />

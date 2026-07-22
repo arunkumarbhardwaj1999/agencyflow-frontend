@@ -37,9 +37,11 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: clip;
 }
 
 body {
+  overflow-x: clip;
   background:
     radial-gradient(1200px 600px at 8% -10%, rgba(99, 102, 241, 0.08), transparent 55%),
     radial-gradient(900px 500px at 100% 0%, rgba(14, 165, 233, 0.06), transparent 50%),
@@ -54,7 +56,7 @@ body {
 
 /* ---------- Typography helpers ---------- */
 .app-page-title {
-  font-size: 1.625rem;
+  font-size: clamp(1.25rem, 4vw, 1.625rem);
   line-height: 1.2;
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -98,17 +100,9 @@ body {
   box-shadow: var(--shadow-soft);
 }
 
-.app-panel {
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(8px);
-}
-
 .app-table-wrap {
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--border);
   border-radius: 0.9rem;
   background: #fff;
@@ -240,63 +234,8 @@ body {
   background-clip: content-box;
 }
 
-/* ---------- Landing page ---------- */
-:root {
-  --landing-green: #4f46e5;
-}
-
 .landing-page {
-  --landing-green: #4f46e5;
-  --landing-accent: #6366f1;
-  --landing-violet: #8b5cf6;
   overflow-x: clip;
-}
-
-.stack-panel {
-  position: sticky;
-  top: 0;
-  min-height: 100vh;
-  isolation: isolate;
-}
-
-.stack-inner {
-  min-height: 100vh;
-  transform-origin: center top;
-  will-change: transform, filter;
-  transform: scale(1) translateY(0);
-  transition:
-    transform 0.12s linear,
-    filter 0.12s linear;
-  border-radius: 0;
-  overflow: hidden;
-}
-
-.stack-panel::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  top: -32px;
-  height: 32px;
-  pointer-events: none;
-  background: linear-gradient(to bottom, rgba(15, 23, 42, 0.14), transparent);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-.stack-panel.is-stacking::before {
-  opacity: 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .stack-panel {
-    position: relative;
-    min-height: 0;
-  }
-  .stack-inner {
-    min-height: 0;
-    transform: none !important;
-    filter: none !important;
-    transition: none !important;
-  }
 }
 
 .landing-gradient {

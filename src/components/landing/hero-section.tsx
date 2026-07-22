@@ -6,26 +6,28 @@ export function HeroSection() {
     <section className="landing-gradient relative min-h-screen text-white">
       <div className="landing-texture pointer-events-none absolute inset-0 opacity-30" />
 
-      <div className="relative mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center px-6 pb-48 pt-28 text-center lg:px-10">
-        <p className="text-xs font-bold uppercase tracking-[0.35em] text-white/70">Hello there</p>
-        <h1 className="mt-6 text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
-          We Are AgencyFlow
-        </h1>
-        <div className="mx-auto mt-8 h-px w-16 bg-white/40" />
-        <p className="landing-serif mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-white/85 sm:text-xl">
-          Your agency workspace is ready. Manage leads, clients, projects, GST invoices, and
-          client portals — all from one beautiful dashboard built for Indian digital agencies.
+      <div className="relative mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center px-5 pb-40 pt-24 text-center sm:px-6 sm:pb-48 sm:pt-28 lg:px-10">
+        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/70 sm:text-xs sm:tracking-[0.35em]">
+          CRM for Indian digital agencies
         </p>
-        <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+        <h1 className="mt-5 text-4xl font-bold tracking-tight sm:mt-6 sm:text-6xl lg:text-7xl">
+          AgencyFlow
+        </h1>
+        <div className="mx-auto mt-6 h-px w-16 bg-white/40 sm:mt-8" />
+        <p className="landing-serif mx-auto mt-6 max-w-2xl text-base leading-relaxed text-white/85 sm:mt-8 sm:text-xl">
+          One workspace for leads, deals, clients, projects, GST invoices, team HR, and client
+          portals — built for how Indian agencies actually work.
+        </p>
+        <div className="mt-8 flex w-full max-w-sm flex-col gap-3 sm:mt-10 sm:max-w-none sm:flex-row sm:justify-center sm:gap-4">
           <Link
             href="/register"
-            className="bg-white px-10 py-4 text-sm font-bold uppercase tracking-widest text-indigo-700 transition hover:bg-white/90"
+            className="bg-white px-8 py-3.5 text-sm font-bold uppercase tracking-widest text-indigo-700 transition hover:bg-white/90 sm:px-10 sm:py-4"
           >
             Start a workspace
           </Link>
           <Link
             href="/login"
-            className="border-2 border-white/40 px-10 py-4 text-sm font-bold uppercase tracking-widest text-white transition hover:border-white hover:bg-white/10"
+            className="border-2 border-white/40 px-8 py-3.5 text-sm font-bold uppercase tracking-widest text-white transition hover:border-white hover:bg-white/10 sm:px-10 sm:py-4"
           >
             Sign in
           </Link>

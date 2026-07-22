@@ -60,8 +60,12 @@ export function CalendarMonthGrid({
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50">
         {weekdays.map((wd) => (
-          <div key={wd} className="px-2 py-2 text-center text-xs font-semibold uppercase text-slate-500">
-            {wd}
+          <div
+            key={wd}
+            className="px-0.5 py-2 text-center text-[10px] font-semibold uppercase text-slate-500 sm:px-2 sm:text-xs"
+          >
+            <span className="sm:hidden">{wd.charAt(0)}</span>
+            <span className="hidden sm:inline">{wd}</span>
           </div>
         ))}
       </div>
@@ -75,7 +79,7 @@ export function CalendarMonthGrid({
               type="button"
               onClick={() => onSelectDay(day)}
               className={cn(
-                "min-h-[100px] border-b border-r border-slate-100 p-1.5 text-left transition hover:bg-slate-50/80",
+                "min-h-[72px] border-b border-r border-slate-100 p-1 text-left transition hover:bg-slate-50/80 sm:min-h-[100px] sm:p-1.5",
                 !inMonth && "bg-slate-50/50 text-slate-400",
               )}
             >
@@ -126,18 +130,18 @@ export function CalendarWeekGrid({
 
   return (
     <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="grid min-w-[700px] grid-cols-[60px_repeat(7,1fr)] border-b border-slate-200 bg-slate-50">
+      <div className="grid min-w-[520px] grid-cols-[48px_repeat(7,1fr)] border-b border-slate-200 bg-slate-50 sm:min-w-[700px] sm:grid-cols-[60px_repeat(7,1fr)]">
         <div />
         {weekDays.map((day) => (
-          <div key={day.toISOString()} className="border-l border-slate-200 px-2 py-2 text-center">
-            <p className="text-xs text-slate-500">{format(day, "EEE")}</p>
-            <p className={cn("text-sm font-semibold", isToday(day) && "text-indigo-600")}>
+          <div key={day.toISOString()} className="border-l border-slate-200 px-1 py-2 text-center sm:px-2">
+            <p className="text-[10px] text-slate-500 sm:text-xs">{format(day, "EEE")}</p>
+            <p className={cn("text-xs font-semibold sm:text-sm", isToday(day) && "text-indigo-600")}>
               {format(day, "d MMM")}
             </p>
           </div>
         ))}
       </div>
-      <div className="grid min-w-[700px] grid-cols-[60px_repeat(7,1fr)]">
+      <div className="grid min-w-[520px] grid-cols-[48px_repeat(7,1fr)] sm:min-w-[700px] sm:grid-cols-[60px_repeat(7,1fr)]">
         {HOURS.map((hour) => (
           <div key={hour} className="contents">
             <div className="border-b border-r border-slate-100 px-2 py-3 text-xs text-slate-400">

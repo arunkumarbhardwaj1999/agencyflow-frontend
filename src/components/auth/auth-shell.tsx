@@ -11,7 +11,7 @@ const features = [
   "Secure client portal for transparent delivery",
 ];
 
-export function AuthBrandPanel() {
+function AuthBrandPanel() {
   return (
     <div className="hidden w-[42%] flex-col justify-between bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 p-10 text-white lg:flex">
       <div>

@@ -76,7 +76,7 @@ export function CinematicAuth({ mode }: { mode: Mode }) {
           <div className={cn("w-full", isLogin ? "max-w-md" : "max-w-lg")}>
             {isLogin ? (
               <>
-                <h1 className="mb-1 text-4xl font-bold text-slate-900">Login</h1>
+                <h1 className="mb-1 text-2xl font-bold text-slate-900 sm:text-4xl">Login</h1>
                 <p className="mb-8 text-sm text-slate-500">
                   Sign in with Google — or use email if your team gave you a password.
                 </p>
@@ -86,7 +86,7 @@ export function CinematicAuth({ mode }: { mode: Mode }) {
               </>
             ) : (
               <>
-                <h1 className="mb-1 text-4xl font-bold text-slate-900">Create account</h1>
+                <h1 className="mb-1 text-2xl font-bold text-slate-900 sm:text-4xl">Create account</h1>
                 <p className="mb-4 text-sm text-slate-500">
                   Fill in your details — we&apos;ll email you a confirmation link to access your workspace.
                 </p>

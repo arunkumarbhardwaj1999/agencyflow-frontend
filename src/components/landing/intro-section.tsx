@@ -5,19 +5,16 @@ const highlights = ["Leads → Won pipeline", "GST-ready invoices", "Client port
 
 export function IntroSection() {
   return (
-    <section className="relative flex min-h-screen items-center overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-violet-50 text-slate-900">
-      {/* Soft accent glows */}
+    <section className="relative flex items-center overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-violet-50 text-slate-900">
       <div className="pointer-events-none absolute -left-32 bottom-0 h-96 w-96 rounded-full bg-indigo-200/40 blur-3xl" />
       <div className="pointer-events-none absolute left-1/3 top-10 h-72 w-72 rounded-full bg-violet-200/30 blur-3xl" />
 
-      {/* Purple decorative panel on the right */}
       <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[46%] lg:block">
         <div className="landing-gradient absolute inset-y-0 right-0 w-full [clip-path:polygon(28%_0,100%_0,100%_100%,0_100%)]" />
         <div className="absolute inset-y-0 right-0 w-full opacity-40 [clip-path:polygon(28%_0,100%_0,100%_100%,0_100%)]">
           <div className="landing-texture h-full w-full" />
         </div>
 
-        {/* Floating glass preview card */}
         <div className="animate-float absolute right-20 top-1/2 w-72 -translate-y-1/2 rounded-2xl border border-white/25 bg-white/10 p-5 shadow-2xl backdrop-blur-md">
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full bg-rose-300" />

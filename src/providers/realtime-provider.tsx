@@ -138,7 +138,3 @@ export function useRealtime() {
   if (!ctx) throw new Error("useRealtime must be used within RealtimeProvider");
   return ctx;
 }
-
-export function useRealtimeOptional() {
-  return useContext(RealtimeContext);
-}

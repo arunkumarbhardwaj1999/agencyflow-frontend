@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "About — AgencyFlow",
-  description: "AgencyFlow is a multi-tenant CRM built for Indian digital agencies.",
-};
+export const metadata: Metadata = buildPageMetadata({
+  title: "About AgencyFlow",
+  description:
+    "Learn why AgencyFlow was built for Indian digital agencies — GST billing, lead-to-project workflows, and one calm multi-tenant CRM workspace.",
+  path: "/about",
+});
 
 const values = [
   {

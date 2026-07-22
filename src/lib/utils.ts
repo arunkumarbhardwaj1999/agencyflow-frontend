@@ -13,13 +13,3 @@ export function formatCurrency(value: number | string) {
     maximumFractionDigits: 0,
   }).format(n || 0);
 }
-
-/** Turn an agency name into a URL-safe workspace slug. */
-export function slugifyWorkspace(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 100);
-}

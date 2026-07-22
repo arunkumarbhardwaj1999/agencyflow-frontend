@@ -115,7 +115,7 @@ export function CalendarView() {
       </div>
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={navigatePrev}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -123,7 +123,9 @@ export function CalendarView() {
           <Button variant="outline" size="sm" onClick={navigateNext}>
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <h2 className="ml-2 text-lg font-semibold text-slate-800">{headerLabel}</h2>
+          <h2 className="mt-1 w-full text-base font-semibold text-slate-800 sm:ml-2 sm:mt-0 sm:w-auto sm:text-lg">
+            {headerLabel}
+          </h2>
         </div>
         <div className="flex flex-wrap gap-3">
           {CALENDAR_LEGEND.map((item) => (

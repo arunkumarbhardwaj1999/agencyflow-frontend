@@ -51,7 +51,7 @@ function scoreStars(score: number) {
   ));
 }
 
-export function useRecord360(entityType: Record360EntityType, entityId: string) {
+function useRecord360(entityType: Record360EntityType, entityId: string) {
   return useQuery({
     queryKey: ["record-360", entityType, entityId],
     queryFn: () => apiFetch<Record360View>(`/records/${entityType}/${entityId}`),

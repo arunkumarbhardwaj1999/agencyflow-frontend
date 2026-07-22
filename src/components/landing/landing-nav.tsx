@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 import { SiteMenu } from "./site-menu";
 
 type LandingNavProps = {
-  /** True when the header sits over a dark hero at the top (landing page). */
   overHero?: boolean;
 };
 
@@ -20,7 +19,6 @@ export function LandingNav({ overHero = false }: LandingNavProps) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Solid glass bar with dark text once scrolled, or always on light pages.
   const solid = !overHero || scrolled;
 
   return (
@@ -39,9 +37,8 @@ export function LandingNav({ overHero = false }: LandingNavProps) {
           solid ? "text-slate-900" : "text-white",
         )}
       >
-        AgencyFlow<span className="text-indigo-500">.</span>
+        AgencyFlow
       </Link>
-
       <SiteMenu tone={solid ? "solid" : "light"} />
     </header>
   );

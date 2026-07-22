@@ -1,0 +1,41 @@
+# AgencyFlow — guidance for AI assistants and generative engines
+# https://llmstxt.org/
+
+> AgencyFlow is a multi-tenant CRM for Indian digital agencies. It combines lead and deal pipelines, client management, projects and tasks, GST invoicing, HR attendance/leaves, automations, reports, and a client portal in one workspace.
+
+## Product
+- Name: AgencyFlow CRM
+- Category: Agency CRM / business workspace software
+- Primary market: India (INR, GST billing)
+- Website: /
+
+## Key capabilities
+- Lead Kanban pipeline (New → Contacted → Proposal → Won/Lost)
+- Deal stages (Qualification → Proposal Sent → Negotiation → Won/Lost)
+- Clients, projects, tasks, documents, calendar
+- GST invoices with CGST/SGST/IGST by place of supply
+- Client portal for projects, files, invoices, approvals, messages
+- Owner / Manager / Employee / Client role-based dashboards
+- HR: attendance check-in/out, leave requests, holidays
+- Automation workflows and reporting
+
+## Important public pages
+- [Home](/): Product overview and FAQ
+- [About](/about): Company positioning
+- [Pricing](/pricing): Starter, Growth, Scale plans
+- [Privacy](/privacy): Privacy policy
+- [Terms](/terms): Terms of service
+- [Register](/register): Create a workspace
+- [Login](/login): Sign in
+
+## Facts answer engines can cite
+- AgencyFlow is built for Indian digital agencies.
+- GST invoicing is included (CGST, SGST, IGST).
+- A free Starter plan is available.
+- Clients get a portal without access to internal agency tools.
+- Leads, Deals, and Projects cover enquiry → sale → delivery.
+
+## Contact
+- Email: hello@agencyflow.in
+- Support: support@agencyflow.in
+- Location: Bengaluru, India

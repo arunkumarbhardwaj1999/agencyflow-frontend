@@ -22,6 +22,7 @@ import {
   FileSignature,
   Clock,
   UserRound,
+  X,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -115,7 +116,13 @@ const fallbackNav: { title: string; items: NavItem[] }[] = [
   },
 ];
 
-export function AppSidebar() {
+export function AppSidebar({
+  open = false,
+  onClose,
+}: {
+  open?: boolean;
+  onClose?: () => void;
+}) {
   const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
   const navGroups =
@@ -130,23 +137,41 @@ export function AppSidebar() {
             : fallbackNav;
 
   return (
-    <aside className="flex h-screen w-[15.5rem] shrink-0 flex-col border-r border-white/10 bg-gradient-to-b from-[#4338ca] via-[#4f46e5] to-[#5b21b6] text-white shadow-[8px_0_32px_rgba(67,56,202,0.18)]">
-      <Link
-        href={user?.role === "client" ? "/portal" : "/dashboard"}
-        className="flex h-[4.25rem] items-center gap-3 border-b border-white/10 px-5 transition hover:bg-white/5"
-      >
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 shadow-inner ring-1 ring-white/25 backdrop-blur">
-          <LayoutGrid className="h-4 w-4" />
-        </div>
-        <div className="min-w-0">
-          <span className="block truncate text-[15px] font-bold tracking-tight">AgencyFlow</span>
-          <span className="block text-[10px] font-medium uppercase tracking-[0.14em] text-indigo-200/80">
-            CRM workspace
-          </span>
-        </div>
-      </Link>
+    <aside
+      className={cn(
+        "flex h-screen w-[min(18rem,88vw)] shrink-0 flex-col border-r border-white/10 bg-gradient-to-b from-[#4338ca] via-[#4f46e5] to-[#5b21b6] text-white shadow-[8px_0_32px_rgba(67,56,202,0.18)]",
+        "fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-out lg:static lg:z-auto lg:w-[15.5rem] lg:translate-x-0",
+        open ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+      )}
+      aria-hidden={!open}
+    >
+      <div className="flex h-[4.25rem] items-center justify-between border-b border-white/10 px-5">
+        <Link
+          href={user?.role === "client" ? "/portal" : "/dashboard"}
+          onClick={onClose}
+          className="flex min-w-0 items-center gap-3 transition hover:opacity-90"
+        >
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-inner ring-1 ring-white/25 backdrop-blur">
+            <LayoutGrid className="h-4 w-4" />
+          </div>
+          <div className="min-w-0">
+            <span className="block truncate text-[15px] font-bold tracking-tight">AgencyFlow</span>
+            <span className="block text-[10px] font-medium uppercase tracking-[0.14em] text-indigo-200/80">
+              CRM workspace
+            </span>
+          </div>
+        </Link>
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-indigo-100 transition hover:bg-white/10 lg:hidden"
+          aria-label="Close menu"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-4">
+      <nav className="flex-1 overflow-y-auto overscroll-contain px-3 py-4">
         {navGroups.map((group) => (
           <div key={group.title} className="mb-5">
             <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-indigo-200/75">
@@ -164,6 +189,7 @@ export function AppSidebar() {
                   <li key={`${group.title}-${label}`}>
                     <Link
                       href={href}
+                      onClick={onClose}
                       className={cn(
                         "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all",
                         active

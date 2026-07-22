@@ -13,27 +13,18 @@ const links = [
   { href: "/#showcase", label: "Product" },
   { href: "/#clients", label: "Clients" },
   { href: "/pricing", label: "Pricing" },
+  { href: "/#faq", label: "FAQ" },
   { href: "/#contact", label: "Contact" },
 ];
 
-/**
- * The "Menu" trigger + slide-in navigation drawer.
- * The drawer is portaled to <body> so it always covers the full viewport,
- * regardless of any transformed/overflow-clipped ancestor.
- */
 export function SiteMenu({
   tone = "solid",
   className,
   showRegister = true,
-  compact = false,
 }: {
-  /** Button appearance: solid (indigo on light bg) or light (white on dark bg). */
   tone?: "solid" | "light";
   className?: string;
-  /** Hide "Start Free" on login / invite pages — employees & clients should not see register. */
   showRegister?: boolean;
-  /** Smaller trigger for auth card header. */
-  compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -136,8 +127,7 @@ export function SiteMenu({
         type="button"
         onClick={() => setOpen(true)}
         className={cn(
-          "flex items-center gap-2 rounded-lg font-semibold uppercase tracking-wide transition",
-          compact ? "px-3 py-2 text-[10px]" : "gap-3 px-5 py-3 text-xs font-bold tracking-[0.2em] shadow-sm",
+          "flex items-center gap-3 rounded-lg px-5 py-3 text-xs font-bold uppercase tracking-[0.2em] shadow-sm transition",
           tone === "solid"
             ? "bg-indigo-600 text-white hover:bg-indigo-700"
             : "bg-white text-indigo-700 hover:bg-white/90",

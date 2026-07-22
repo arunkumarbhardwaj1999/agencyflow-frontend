@@ -74,7 +74,7 @@ export function FooterSection() {
                 if (email.trim()) setSubscribed(true);
                 setEmail("");
               }}
-              className="mt-4 flex w-full max-w-md overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm sm:mt-0"
+              className="mt-4 flex w-full max-w-md flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm sm:mt-0 sm:flex-row"
             >
               <div className="relative flex-1">
                 <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -89,7 +89,7 @@ export function FooterSection() {
               </div>
               <button
                 type="submit"
-                className="bg-gradient-to-r from-indigo-600 to-violet-600 px-6 text-xs font-bold uppercase tracking-widest text-white transition hover:brightness-110"
+                className="bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3.5 text-xs font-bold uppercase tracking-widest text-white transition hover:brightness-110 sm:py-0"
               >
                 Subscribe
               </button>

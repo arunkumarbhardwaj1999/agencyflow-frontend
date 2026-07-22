@@ -60,6 +60,7 @@ export const FOOTER_COLUMNS: { title: string; links: FooterLink[] }[] = [
       { label: "Features", href: "/#features" },
       { label: "Modules", href: "/#showcase" },
       { label: "Pricing", href: "/pricing" },
+      { label: "FAQ", href: "/#faq" },
       { label: "Client portal", href: "/#features" },
     ],
   },

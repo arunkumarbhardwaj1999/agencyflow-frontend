@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Pricing — AgencyFlow",
-  description: "Simple, transparent pricing for agencies of every size.",
-};
+export const metadata: Metadata = buildPageMetadata({
+  title: "Pricing",
+  description:
+    "AgencyFlow pricing for Indian agencies — free Starter plan, Growth at ₹1,499/mo, and custom Scale plans with GST invoicing, portals, and automations.",
+  path: "/pricing",
+});
 
 const plans = [
   {

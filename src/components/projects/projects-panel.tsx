@@ -158,8 +158,8 @@ function ProjectsPanelAdmin() {
 
   return (
     <div>
-      <div className="mb-5 flex items-center justify-between">
-        <div>
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="app-page-title">Projects &amp; tasks</h1>
           <p className="app-page-subtitle">Track delivery workloads and progress</p>
         </div>
