@@ -74,12 +74,19 @@ export function CalendarMonthGrid({
           const dayEvents = eventsForDay(events, day);
           const inMonth = isSameMonth(day, anchor);
           return (
-            <button
+            <div
               key={day.toISOString()}
-              type="button"
+              role="button"
+              tabIndex={0}
               onClick={() => onSelectDay(day)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onSelectDay(day);
+                }
+              }}
               className={cn(
-                "min-h-[72px] border-b border-r border-slate-100 p-1 text-left transition hover:bg-slate-50/80 sm:min-h-[100px] sm:p-1.5",
+                "min-h-[72px] cursor-pointer border-b border-r border-slate-100 p-1 text-left transition hover:bg-slate-50/80 sm:min-h-[100px] sm:p-1.5",
                 !inMonth && "bg-slate-50/50 text-slate-400",
               )}
             >
@@ -99,7 +106,7 @@ export function CalendarMonthGrid({
                   <p className="px-1 text-[10px] text-slate-500">+{dayEvents.length - 3} more</p>
                 )}
               </div>
-            </button>
+            </div>
           );
         })}
       </div>

@@ -95,14 +95,16 @@ function LeadCard({
           {lead.name}
         </Link>
         <div className="flex gap-1">
-          <button
-            type="button"
-            onPointerDown={stop}
-            onClick={(e) => { stop(e); onAI(); }}
-            className="text-xs text-violet-600 hover:underline"
-          >
-            AI
-          </button>
+          {FEATURES.ai && (
+            <button
+              type="button"
+              onPointerDown={stop}
+              onClick={(e) => { stop(e); onAI(); }}
+              className="text-xs text-violet-600 hover:underline"
+            >
+              AI
+            </button>
+          )}
           <button
             type="button"
             onPointerDown={stop}
