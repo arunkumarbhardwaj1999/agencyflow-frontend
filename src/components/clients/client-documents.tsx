@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
+import { FEATURES } from "@/lib/feature-flags";
 
 function formatFileSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
@@ -125,6 +126,10 @@ export function ClientDocuments({ clientId }: { clientId: string }) {
   });
 
   const classifyAndQueue = useCallback(async (file: File) => {
+    if (!FEATURES.ai) {
+      uploadMutation.mutate({ file, folder: "others" });
+      return;
+    }
     const suggestion = await apiFetch<DocumentFolderSuggestion>("/clients/classify-document", {
       method: "POST",
       body: JSON.stringify({
@@ -208,10 +213,12 @@ export function ClientDocuments({ clientId }: { clientId: string }) {
       >
         <Upload className="mx-auto mb-2 h-8 w-8 text-slate-400" />
         <p className="text-sm font-medium text-slate-700">Drag & drop files into Document Center</p>
-        <p className="mt-1 flex items-center justify-center gap-1 text-xs text-slate-500">
-          <Sparkles className="h-3 w-3" />
-          AI suggests the right folder automatically
-        </p>
+        {FEATURES.ai && (
+          <p className="mt-1 flex items-center justify-center gap-1 text-xs text-slate-500">
+            <Sparkles className="h-3 w-3" />
+            AI suggests the right folder automatically
+          </p>
+        )}
         <Button
           size="sm"
           variant="outline"

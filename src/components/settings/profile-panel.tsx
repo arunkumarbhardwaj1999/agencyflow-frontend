@@ -94,7 +94,7 @@ export function ProfilePanel() {
                 <Plug className="h-4 w-4 text-emerald-600" />
                 Workspace integrations
               </CardTitle>
-              <CardDescription>Email, WhatsApp, and automation for your agency.</CardDescription>
+              <CardDescription>Email delivery status for your agency.</CardDescription>
             </CardHeader>
             <CardContent>
               <Button asChild variant="outline">

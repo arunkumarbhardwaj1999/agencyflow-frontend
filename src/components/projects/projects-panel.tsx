@@ -25,6 +25,7 @@ import { ProjectDocuments } from "./project-documents";
 import { AIResultModal } from "@/components/ai/ai-result-modal";
 import { useAuthStore } from "@/stores/auth-store";
 import { EmployeeProjectsPanel } from "./employee-projects-panel";
+import { FEATURES } from "@/lib/feature-flags";
 
 const projectSchema = z.object({
   client_id: z.string().uuid(),
@@ -288,7 +289,7 @@ function ProjectsPanelAdmin() {
                 <Button variant="outline" size="sm" className="ml-2" onClick={() => setExpandedId(expanded ? null : p.id)}>
                   {expanded ? "Hide tasks" : `Tasks (${projectTasks.length})`}
                 </Button>
-                {expanded && (
+                {expanded && FEATURES.ai && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -356,13 +357,15 @@ function ProjectsPanelAdmin() {
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={() => setAiTaskId(t.id)}
-                                className="text-xs text-indigo-600 hover:underline"
-                              >
-                                AI polish
-                              </button>
+                              {FEATURES.ai && (
+                                <button
+                                  type="button"
+                                  onClick={() => setAiTaskId(t.id)}
+                                  className="text-xs text-indigo-600 hover:underline"
+                                >
+                                  AI polish
+                                </button>
+                              )}
                               <select
                                 className="cursor-pointer rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40"
                                 value={t.status}

@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Reveal } from "@/components/ui/reveal";
 import { Modal } from "@/components/ui/modal";
 import { AIResultModal } from "@/components/ai/ai-result-modal";
+import { FEATURES } from "@/lib/feature-flags";
 
 const AVATAR_GRADIENTS = [
   "from-indigo-500 to-violet-600",
@@ -266,15 +267,17 @@ export function ClientsPanel() {
                     <Button variant="outline" size="sm" onClick={() => openEdit(c)}>
                       Edit
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-1"
-                      onClick={() => setAiClientId(c.id)}
-                    >
-                      <Sparkles className="h-3.5 w-3.5" />
-                      Welcome email
-                    </Button>
+                    {FEATURES.ai && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => setAiClientId(c.id)}
+                      >
+                        <Sparkles className="h-3.5 w-3.5" />
+                        Welcome email
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"

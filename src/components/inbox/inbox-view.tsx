@@ -28,6 +28,7 @@ import { Label } from "@/components/ui/label";
 import { Modal } from "@/components/ui/modal";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { FEATURES } from "@/lib/feature-flags";
 import { useAuthStore } from "@/stores/auth-store";
 
 function dayLabel(iso: string) {
@@ -38,6 +39,10 @@ function dayLabel(iso: string) {
 }
 
 type DateFilter = "all" | "today" | "week";
+
+const VISIBLE_INBOX_CHANNELS = INBOX_CHANNELS.filter(
+  (c) => FEATURES.whatsapp || c.id !== "whatsapp",
+);
 
 export function InboxView() {
   const router = useRouter();
@@ -176,10 +181,10 @@ export function InboxView() {
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Channels</p>
           <nav className="space-y-1">
             {(isEmployee
-              ? INBOX_CHANNELS.filter((ch) =>
+              ? VISIBLE_INBOX_CHANNELS.filter((ch) =>
                   ["all", "internal_comment", "notification"].includes(ch.id),
                 )
-              : INBOX_CHANNELS
+              : VISIBLE_INBOX_CHANNELS
             ).map((ch) => (
               <button
                 key={ch.id}
@@ -230,7 +235,7 @@ export function InboxView() {
             </div>
           </div>
 
-          {!isEmployee && (channel === "whatsapp" || channel === "messaging") && (
+          {!isEmployee && FEATURES.whatsapp && (channel === "whatsapp" || channel === "messaging") && (
             <Button
               variant="outline"
               size="sm"
@@ -352,7 +357,7 @@ export function InboxView() {
         open={composeOpen}
         onClose={() => setComposeOpen(false)}
         title="Send message (SMS proxy)"
-        description="Works without WhatsApp API keys. Message is sent via SMS and logged in inbox as WhatsApp proxy."
+        description="Send an SMS-style message and log it in the inbox."
         footer={
           <>
             <Button variant="outline" onClick={() => setComposeOpen(false)}>Cancel</Button>

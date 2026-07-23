@@ -38,7 +38,7 @@ export function InboxSummaryBanner({
             </h2>
           </div>
           <p className="text-xs text-slate-500">
-            Rule-based priorities — no API key needed. WhatsApp uses SMS proxy until you connect Meta.
+            Rule-based priorities — no API key needed.
           </p>
           {summary.summary_lines.length > 0 && (
             <ul className="mt-3 space-y-1">

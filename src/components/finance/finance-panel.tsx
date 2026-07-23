@@ -30,6 +30,7 @@ import type {
   WhatsAppTemplate,
 } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
+import { FEATURES } from "@/lib/feature-flags";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -220,7 +221,7 @@ export function FinancePanel({ hideHeading = false }: { hideHeading?: boolean })
           <div>
             <h1 className="app-page-title">Invoices &amp; billing</h1>
             <p className="app-page-subtitle max-w-xl">
-              GST-compliant invoices — auto CGST+SGST or IGST, PDF export, payment links &amp; WhatsApp
+              GST-compliant invoices — auto CGST+SGST or IGST, PDF export &amp; payment links
             </p>
           </div>
         ) : (
@@ -229,25 +230,27 @@ export function FinancePanel({ hideHeading = false }: { hideHeading?: boolean })
           </div>
         )}
         <div className="flex flex-wrap items-center gap-2">
-          <Select
-            value={waTemplate}
-            onChange={(e) => setWaTemplate(e.target.value)}
-            className="h-10 w-44"
-            title="Default WhatsApp template for invoice rows"
-          >
-            {waTemplates.map((t) => (
-              <option key={t.key} value={t.key}>
-                WA: {t.label}
-              </option>
-            ))}
-            {waTemplates.length === 0 && (
-              <>
-                <option value="payment_reminder">WA: Payment reminder</option>
-                <option value="invoice_ready">WA: Invoice ready</option>
-                <option value="payment_received">WA: Payment received</option>
-              </>
-            )}
-          </Select>
+          {FEATURES.whatsapp && (
+            <Select
+              value={waTemplate}
+              onChange={(e) => setWaTemplate(e.target.value)}
+              className="h-10 w-44"
+              title="Default WhatsApp template for invoice rows"
+            >
+              {waTemplates.map((t) => (
+                <option key={t.key} value={t.key}>
+                  WA: {t.label}
+                </option>
+              ))}
+              {waTemplates.length === 0 && (
+                <>
+                  <option value="payment_reminder">WA: Payment reminder</option>
+                  <option value="invoice_ready">WA: Invoice ready</option>
+                  <option value="payment_received">WA: Payment received</option>
+                </>
+              )}
+            </Select>
+          )}
           <Button onClick={() => setShowModal(true)} className="gap-2">
             <Plus className="h-4 w-4" />
             Create invoice
@@ -261,7 +264,7 @@ export function FinancePanel({ hideHeading = false }: { hideHeading?: boolean })
         <StatCard label="Pending" value={totalPending} icon={Clock3} accent="amber" currency />
       </div>
 
-      {user?.role === "owner" && integrations && !integrations.whatsapp.enabled && (
+      {FEATURES.whatsapp && user?.role === "owner" && integrations && !integrations.whatsapp.enabled && (
         <div className="flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-2">
             <MessageCircle className="mt-0.5 h-5 w-5 shrink-0" />
@@ -483,27 +486,31 @@ export function FinancePanel({ hideHeading = false }: { hideHeading?: boolean })
                             <Mail className="h-3.5 w-3.5" />
                             Email
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setAiInvoiceId(inv.id)}
-                            className="gap-1"
-                            title="AI draft invoice email"
-                          >
-                            <Sparkles className="h-3.5 w-3.5" />
-                            AI
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => whatsappMutation.mutate({ id: inv.id, template: waTemplate })}
-                            disabled={whatsappMutation.isPending}
-                            className="gap-1"
-                            title="Send WhatsApp notification"
-                          >
-                            <MessageCircle className="h-3.5 w-3.5" />
-                            WA
-                          </Button>
+                          {FEATURES.ai && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setAiInvoiceId(inv.id)}
+                              className="gap-1"
+                              title="AI draft invoice email"
+                            >
+                              <Sparkles className="h-3.5 w-3.5" />
+                              AI
+                            </Button>
+                          )}
+                          {FEATURES.whatsapp && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => whatsappMutation.mutate({ id: inv.id, template: waTemplate })}
+                              disabled={whatsappMutation.isPending}
+                              className="gap-1"
+                              title="Send WhatsApp notification"
+                            >
+                              <MessageCircle className="h-3.5 w-3.5" />
+                              WA
+                            </Button>
+                          )}
                           {inv.status !== "paid" && (
                             <>
                               <Button
@@ -541,40 +548,42 @@ export function FinancePanel({ hideHeading = false }: { hideHeading?: boolean })
         </Card>
       </Reveal>
 
-      <Reveal delay={120}>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">WhatsApp activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {waLogs.length === 0 ? (
-              <p className="text-sm text-slate-500">
-                No WhatsApp messages yet. Send from an invoice row or enable auto-triggers on payment.
-              </p>
-            ) : (
-              <ul className="space-y-3">
-                {waLogs.map((log) => (
-                  <li key={log.id} className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-medium text-slate-800">{log.phone}</span>
-                      <Badge variant={log.status === "failed" ? "danger" : "secondary"} className="capitalize">
-                        {log.status}
-                      </Badge>
-                    </div>
-                    {log.template_key && (
-                      <p className="mt-1 text-xs text-indigo-600">Template: {log.template_key}</p>
-                    )}
-                    <p className="mt-1 line-clamp-2 text-slate-600">{log.message}</p>
-                    <p className="mt-1 text-xs text-slate-400">
-                      {new Date(log.sent_at).toLocaleString()}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-      </Reveal>
+      {FEATURES.whatsapp && (
+        <Reveal delay={120}>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">WhatsApp activity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {waLogs.length === 0 ? (
+                <p className="text-sm text-slate-500">
+                  No WhatsApp messages yet. Send from an invoice row or enable auto-triggers on payment.
+                </p>
+              ) : (
+                <ul className="space-y-3">
+                  {waLogs.map((log) => (
+                    <li key={log.id} className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-medium text-slate-800">{log.phone}</span>
+                        <Badge variant={log.status === "failed" ? "danger" : "secondary"} className="capitalize">
+                          {log.status}
+                        </Badge>
+                      </div>
+                      {log.template_key && (
+                        <p className="mt-1 text-xs text-indigo-600">Template: {log.template_key}</p>
+                      )}
+                      <p className="mt-1 line-clamp-2 text-slate-600">{log.message}</p>
+                      <p className="mt-1 text-xs text-slate-400">
+                        {new Date(log.sent_at).toLocaleString()}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </Reveal>
+      )}
 
       <AIResultModal
         open={!!aiInvoiceId}

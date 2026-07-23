@@ -29,6 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Modal } from "@/components/ui/modal";
 import { Textarea } from "@/components/ui/textarea";
+import { FEATURES } from "@/lib/feature-flags";
 
 function statusTitle(status: string) {
   return LEAD_COLUMNS.find((c) => c.id === status)?.title ?? status;
@@ -148,10 +149,12 @@ export function LeadDetailView({ leadId }: { leadId: string }) {
           <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
             Edit
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setAiOpen(true)}>
-            <Sparkles className="mr-1 h-4 w-4" />
-            AI email
-          </Button>
+          {FEATURES.ai && (
+            <Button variant="outline" size="sm" onClick={() => setAiOpen(true)}>
+              <Sparkles className="mr-1 h-4 w-4" />
+              AI email
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={() => setEmailOpen(true)} disabled={!lead.email}>
             <Mail className="mr-1 h-4 w-4" />
             Send email
@@ -180,7 +183,11 @@ export function LeadDetailView({ leadId }: { leadId: string }) {
           <Record360Panel
             entityType="lead"
             entityId={leadId}
-            sections={["insights", "related", "meetings", "internal_comments"]}
+            sections={
+              FEATURES.ai
+                ? ["insights", "related", "meetings", "internal_comments"]
+                : ["related", "meetings", "internal_comments"]
+            }
           />
 
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -267,15 +274,17 @@ export function LeadDetailView({ leadId }: { leadId: string }) {
             <LeadEmailHistory leadId={leadId} />
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="mb-4">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">WhatsApp</h2>
-              <p className="mt-1 text-xs text-slate-400">
-                Message history — full integration coming soon. Use email for now.
-              </p>
-            </div>
-            <LeadWhatsAppHistory leadId={leadId} />
-          </section>
+          {FEATURES.whatsapp && (
+            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="mb-4">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">WhatsApp</h2>
+                <p className="mt-1 text-xs text-slate-400">
+                  Message history — full integration coming soon. Use email for now.
+                </p>
+              </div>
+              <LeadWhatsAppHistory leadId={leadId} />
+            </section>
+          )}
 
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4">

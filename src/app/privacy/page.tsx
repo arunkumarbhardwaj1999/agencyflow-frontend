@@ -24,7 +24,7 @@ const sections = [
   },
   {
     h: "4. Third-party services",
-    p: "We use trusted providers for email (Resend), payments (Razorpay/Stripe), messaging (Meta WhatsApp), and file storage (Cloudflare R2). Each processes data only to deliver its feature.",
+    p: "We use trusted providers for email (Resend), payments (Razorpay/Stripe), and file storage (Cloudflare R2). Each processes data only to deliver its feature.",
   },
   {
     h: "5. Your rights",

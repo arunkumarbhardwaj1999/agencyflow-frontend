@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { FEATURES } from "@/lib/feature-flags";
 
 function newBlock(type: string): AutomationActionBlock {
   return {
@@ -113,7 +114,7 @@ export function AutomationBuilder({ automationId }: { automationId?: string }) {
   const [actions, setActions] = useState<AutomationActionBlock[]>([
     newBlock("assign_manager"),
     newBlock("send_email"),
-    newBlock("send_whatsapp"),
+    ...(FEATURES.whatsapp ? [newBlock("send_whatsapp")] : []),
     newBlock("create_task"),
   ]);
   const [addOpen, setAddOpen] = useState(false);
@@ -276,7 +277,9 @@ export function AutomationBuilder({ automationId }: { automationId?: string }) {
           <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <h2 className="mb-2 text-xs font-semibold uppercase text-slate-500">Action library</h2>
             <div className="space-y-1.5">
-              {(catalog?.actions ?? []).map((a) => (
+              {(catalog?.actions ?? [])
+                .filter((a) => FEATURES.whatsapp || a.key !== "send_whatsapp")
+                .map((a) => (
                 <button
                   key={a.key}
                   type="button"
@@ -352,7 +355,7 @@ export function AutomationBuilder({ automationId }: { automationId?: string }) {
                       />
                     </div>
                   )}
-                  {action.type === "send_whatsapp" && (
+                  {action.type === "send_whatsapp" && FEATURES.whatsapp && (
                     <Textarea
                       placeholder="WhatsApp message"
                       rows={2}
@@ -431,7 +434,9 @@ export function AutomationBuilder({ automationId }: { automationId?: string }) {
 
       <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Add action">
         <div className="space-y-2">
-          {(catalog?.actions ?? []).map((a) => (
+          {(catalog?.actions ?? [])
+            .filter((a) => FEATURES.whatsapp || a.key !== "send_whatsapp")
+            .map((a) => (
             <button
               key={a.key}
               type="button"

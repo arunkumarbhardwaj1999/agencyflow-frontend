@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { LeadFormDialog } from "./lead-form-dialog";
 import { AIResultModal } from "@/components/ai/ai-result-modal";
+import { FEATURES } from "@/lib/feature-flags";
 
 function followupLabel(iso: string | null): { text: string; className: string } | null {
   if (!iso) return null;
@@ -303,11 +304,13 @@ export function LeadsKanban() {
           <p className="app-page-subtitle">Pipeline board with draggable stage cards</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => setFollowupsOpen(true)} className="gap-2">
-            <Sparkles className="h-4 w-4" />
-            <span className="hidden sm:inline">AI follow-ups</span>
-            <span className="sm:hidden">AI</span>
-          </Button>
+          {FEATURES.ai && (
+            <Button variant="outline" onClick={() => setFollowupsOpen(true)} className="gap-2">
+              <Sparkles className="h-4 w-4" />
+              <span className="hidden sm:inline">AI follow-ups</span>
+              <span className="sm:hidden">AI</span>
+            </Button>
+          )}
           <Button onClick={() => { setEditingLead(null); setFormOpen(true); }} className="gap-2">
             <Plus className="h-4 w-4" />
             Add lead

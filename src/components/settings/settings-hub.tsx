@@ -17,7 +17,7 @@ const links = [
   {
     href: "/settings/integrations",
     title: "Integrations",
-    description: "Email, WhatsApp, SMS, payments, and AI providers.",
+    description: "Email delivery for invites, invoices, and account messages.",
     icon: Plug,
   },
   {

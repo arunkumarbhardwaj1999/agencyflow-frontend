@@ -20,6 +20,7 @@ import type {
   Record360View,
 } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
+import { FEATURES } from "@/lib/feature-flags";
 import { Badge } from "@/components/ui/badge";
 
 export type Record360Section =
@@ -88,7 +89,7 @@ export function Record360Panel({
 
   return (
     <div className="space-y-4">
-      {show("insights") && (
+      {show("insights") && FEATURES.ai && (
         <section className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50/80 to-white p-5 shadow-sm">
           <div className="mb-3 flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-indigo-600" />
@@ -247,7 +248,7 @@ export function Record360Panel({
         </section>
       )}
 
-      {show("messaging") && messaging.length > 0 && (
+      {show("messaging") && FEATURES.whatsapp && messaging.length > 0 && (
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
             <MessageCircle className="h-4 w-4" />

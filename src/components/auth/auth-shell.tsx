@@ -7,7 +7,6 @@ import { SiteMenu } from "@/components/landing/site-menu";
 const features = [
   "Multi-tenant workspace with role-based access",
   "India-first GST billing engine (CGST / IGST)",
-  "WhatsApp + AI-powered client communication",
   "Secure client portal for transparent delivery",
 ];
 

@@ -16,6 +16,7 @@ import {
 import { apiBlob, apiFetch } from "@/lib/api";
 import type { Client, Contract, Proposal, ProposalAIDraft, ProposalTemplate } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
+import { FEATURES } from "@/lib/feature-flags";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -452,27 +453,29 @@ export function ProposalBuilder({ proposalId }: { proposalId?: string }) {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4">
-            <h2 className="mb-2 flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-indigo-700">
-              <Sparkles className="h-3.5 w-3.5" />
-              AI draft
-            </h2>
-            <Textarea
-              rows={3}
-              value={aiPrompt}
-              onChange={(e) => setAiPrompt(e.target.value)}
-              placeholder="e.g. Need proposal for website and SEO"
-            />
-            <Button
-              size="sm"
-              className="mt-2 w-full"
-              variant="outline"
-              disabled={aiMutation.isPending}
-              onClick={() => aiMutation.mutate()}
-            >
-              {aiMutation.isPending ? "Generating…" : "Generate with AI"}
-            </Button>
-          </section>
+          {FEATURES.ai && (
+            <section className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4">
+              <h2 className="mb-2 flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-indigo-700">
+                <Sparkles className="h-3.5 w-3.5" />
+                AI draft
+              </h2>
+              <Textarea
+                rows={3}
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                placeholder="e.g. Need proposal for website and SEO"
+              />
+              <Button
+                size="sm"
+                className="mt-2 w-full"
+                variant="outline"
+                disabled={aiMutation.isPending}
+                onClick={() => aiMutation.mutate()}
+              >
+                {aiMutation.isPending ? "Generating…" : "Generate with AI"}
+              </Button>
+            </section>
+          )}
         </aside>
 
         <div className="space-y-4">

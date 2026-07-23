@@ -161,7 +161,7 @@ export function DashboardHeader({
             href="/settings/integrations"
             className="hidden h-10 w-10 items-center justify-center rounded-xl border border-slate-200/80 bg-white/90 text-slate-500 shadow-sm transition-colors hover:bg-white hover:text-indigo-600 sm:flex"
             aria-label="Integrations"
-            title="Integrations (Email & WhatsApp)"
+            title="Integrations (Email)"
           >
             <Settings className="h-4 w-4" />
           </Link>
