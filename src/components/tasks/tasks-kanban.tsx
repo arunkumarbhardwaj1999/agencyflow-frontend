@@ -8,10 +8,12 @@ import {
   DragStartEvent,
   PointerSensor,
   closestCorners,
+  pointerWithin,
   useDraggable,
   useDroppable,
   useSensor,
   useSensors,
+  type CollisionDetection,
 } from "@dnd-kit/core";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -21,6 +23,20 @@ import { apiFetch } from "@/lib/api";
 import { TASK_COLUMNS, type Project, type Task } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { useAuthStore } from "@/stores/auth-store";
+
+const COLUMN_IDS = new Set(TASK_COLUMNS.map((c) => c.id));
+
+/** Prefer column droppables so empty Done/Review columns accept drops reliably. */
+const columnPreferringCollision: CollisionDetection = (args) => {
+  const pointerHits = pointerWithin(args);
+  if (pointerHits.length > 0) {
+    const columnHit = pointerHits.find((c) => COLUMN_IDS.has(String(c.id)));
+    return columnHit ? [columnHit] : pointerHits;
+  }
+  const corners = closestCorners(args);
+  const columnHit = corners.find((c) => COLUMN_IDS.has(String(c.id)));
+  return columnHit ? [columnHit] : corners;
+};
 
 const COLUMN_DOT: Record<string, string> = {
   todo: "bg-slate-400",
@@ -150,7 +166,23 @@ export function TasksKanban() {
         method: "PATCH",
         body: JSON.stringify({ status }),
       }),
-    onSuccess: () => {
+    onMutate: async ({ id, status }) => {
+      await queryClient.cancelQueries({ queryKey: ["tasks"] });
+      const previous = queryClient.getQueryData<Task[]>(["tasks"]);
+      queryClient.setQueryData<Task[]>(["tasks"], (old) =>
+        old?.map((t) => (t.id === id ? { ...t, status } : t)),
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(["tasks"], ctx.previous);
+    },
+    onSuccess: (updated) => {
+      queryClient.setQueryData<Task[]>(["tasks"], (old) =>
+        old?.map((t) => (t.id === updated.id ? updated : t)),
+      );
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
@@ -165,7 +197,7 @@ export function TasksKanban() {
     const task = event.active.data.current?.task as Task | undefined;
     const overId = event.over?.id as string | undefined;
     if (!task || !overId) return;
-    const nextStatus = TASK_COLUMNS.some((c) => c.id === overId)
+    const nextStatus = COLUMN_IDS.has(overId)
       ? overId
       : tasks.find((t) => t.id === overId)?.status;
     if (!nextStatus || nextStatus === task.status) return;
@@ -196,7 +228,7 @@ export function TasksKanban() {
       ) : (
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCorners}
+          collisionDetection={columnPreferringCollision}
           onDragStart={onDragStart}
           onDragEnd={onDragEnd}
         >
