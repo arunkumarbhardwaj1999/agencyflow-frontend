@@ -106,7 +106,7 @@ function DealCard({
           </span>
         )}
       </div>
-      {memberName && <p className="mt-1 text-xs text-slate-500">Owner: {memberName}</p>}
+      {memberName && <p className="mt-1 text-xs text-slate-500">Assigned to: {memberName}</p>}
       {onWin && (
         <Button
           type="button"
@@ -322,7 +322,7 @@ export function DealsKanban() {
               onChange={(e) => setSearch(e.target.value)}
             />
             <Select value={assigneeFilter} onChange={(e) => setAssigneeFilter(e.target.value)}>
-              <option value="">All owners</option>
+              <option value="">All assignees</option>
               {(members as Member[]).map((m) => (
                 <option key={m.id} value={m.id}>{m.name}</option>
               ))}

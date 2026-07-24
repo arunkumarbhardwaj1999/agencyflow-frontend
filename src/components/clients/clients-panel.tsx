@@ -253,7 +253,7 @@ export function ClientsPanel() {
                   {c.phone && <p>{c.phone}</p>}
                   {c.assigned_user_id && (
                     <p className="text-xs text-slate-500">
-                      Manager: {memberMap.get(c.assigned_user_id) ?? "—"}
+                      Account manager: {memberMap.get(c.assigned_user_id) ?? "—"}
                     </p>
                   )}
                   <div className="flex gap-2 pt-2">

@@ -126,7 +126,7 @@ function LeadCard({
       {lead.company_name && <p className="text-xs text-slate-500">{lead.company_name}</p>}
       <p className="mt-2 text-sm font-semibold text-indigo-600">{formatCurrency(lead.value)}</p>
       {memberName && (
-        <p className="mt-1 text-xs text-slate-500">Owner: {memberName}</p>
+        <p className="mt-1 text-xs text-slate-500">Assigned to: {memberName}</p>
       )}
       {followup && <p className={`mt-1 text-xs ${followup.className}`}>{followup.text}</p>}
       {onConvert && (
@@ -364,7 +364,7 @@ export function LeadsKanban() {
               onChange={(e) => setSearch(e.target.value)}
             />
             <Select value={assigneeFilter} onChange={(e) => setAssigneeFilter(e.target.value)}>
-              <option value="">All owners</option>
+              <option value="">All assignees</option>
               {(members as Member[]).map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.name}
