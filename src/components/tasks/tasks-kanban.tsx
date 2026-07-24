@@ -24,7 +24,7 @@ import { TASK_COLUMNS, type Project, type Task } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { useAuthStore } from "@/stores/auth-store";
 
-const COLUMN_IDS = new Set(TASK_COLUMNS.map((c) => c.id));
+const COLUMN_IDS = new Set<string>(TASK_COLUMNS.map((c) => c.id));
 
 /** Prefer column droppables so empty Done/Review columns accept drops reliably. */
 const columnPreferringCollision: CollisionDetection = (args) => {
