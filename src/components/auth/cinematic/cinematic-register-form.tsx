@@ -151,11 +151,33 @@ export function CinematicRegisterForm() {
       <label className="mt-4 flex cursor-pointer items-start gap-2 text-xs text-slate-600">
         <input
           type="checkbox"
-          className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-indigo-600"
+          className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 accent-indigo-600"
           checked={agreed}
           onChange={(e) => setAgreed(e.target.checked)}
         />
-        I agree to AgencyFlow terms of service and privacy policy.
+        <span>
+          I agree to AgencyFlow{" "}
+          <Link
+            href="/terms"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-indigo-600 underline-offset-2 hover:underline"
+            onClick={(e) => e.stopPropagation()}
+          >
+            terms of service
+          </Link>{" "}
+          and{" "}
+          <Link
+            href="/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-indigo-600 underline-offset-2 hover:underline"
+            onClick={(e) => e.stopPropagation()}
+          >
+            privacy policy
+          </Link>
+          .
+        </span>
       </label>
 
       <button

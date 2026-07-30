@@ -1,13 +1,17 @@
 "use client";
 
-import { AtSign, Mail, Phone, Shield, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { AtSign, Mail, Pencil, Phone, Shield, User } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { usePasswordChange } from "@/components/auth/password-change-context";
-import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
-import type { PortalMe } from "@/lib/types";
+import type { PortalMe, User as AuthUser } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Modal } from "@/components/ui/modal";
 
 function initials(first: string, last?: string | null) {
   return `${first.charAt(0)}${last?.charAt(0) ?? ""}`.toUpperCase();
@@ -15,10 +19,39 @@ function initials(first: string, last?: string | null) {
 
 export function PortalProfile() {
   const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
   const { openPasswordChange } = usePasswordChange();
+  const [editing, setEditing] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+
   const { data: me } = useQuery({
     queryKey: ["portal-me"],
     queryFn: () => apiFetch<PortalMe>("/portal/me"),
+  });
+
+  useEffect(() => {
+    if (!user || !editing) return;
+    setFirstName(user.first_name);
+    setLastName(user.last_name ?? "");
+    setPhone(user.phone ?? "");
+  }, [user, editing]);
+
+  const saveMutation = useMutation({
+    mutationFn: () =>
+      apiFetch<AuthUser>("/auth/me", {
+        method: "PATCH",
+        body: JSON.stringify({
+          first_name: firstName.trim(),
+          last_name: lastName.trim() || null,
+          phone: phone.trim() || null,
+        }),
+      }),
+    onSuccess: (updated) => {
+      setUser(updated);
+      setEditing(false);
+    },
   });
 
   if (!user) return null;
@@ -26,9 +59,15 @@ export function PortalProfile() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Profile</h1>
-        <p className="text-sm text-slate-500">Your client portal account</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Profile</h1>
+          <p className="text-sm text-slate-500">Your client portal account</p>
+        </div>
+        <Button type="button" variant="outline" onClick={() => setEditing(true)}>
+          <Pencil className="mr-2 h-4 w-4" />
+          Edit profile
+        </Button>
       </div>
 
       <Card>
@@ -63,6 +102,57 @@ export function PortalProfile() {
           </Button>
         </CardContent>
       </Card>
+
+      <Modal
+        open={editing}
+        onClose={() => !saveMutation.isPending && setEditing(false)}
+        title="Edit profile"
+        description="Update your name and phone. Email and username stay the same."
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={saveMutation.isPending}
+              onClick={() => setEditing(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              disabled={saveMutation.isPending || !firstName.trim()}
+              onClick={() => saveMutation.mutate()}
+            >
+              {saveMutation.isPending ? "Saving…" : "Save changes"}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label>First name</Label>
+              <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+            </div>
+            <div>
+              <Label>Last name</Label>
+              <Input value={lastName} onChange={(e) => setLastName(e.target.value)} />
+            </div>
+          </div>
+          <div>
+            <Label>Phone</Label>
+            <Input
+              type="tel"
+              placeholder="e.g. 9876543210"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
+          {saveMutation.isError && (
+            <p className="text-sm text-red-600">{(saveMutation.error as Error).message}</p>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

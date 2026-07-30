@@ -1,11 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { AtSign, KeyRound, Mail, Phone, Plug, Shield, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { AtSign, KeyRound, Mail, Pencil, Phone, Plug, Shield, User } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { usePasswordChange } from "@/components/auth/password-change-context";
+import { apiFetch } from "@/lib/api";
+import type { User as AuthUser } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Modal } from "@/components/ui/modal";
 import { HrPanel } from "@/components/hr/hr-panel";
 
 function initials(first: string, last?: string | null) {
@@ -34,7 +41,35 @@ function InfoRow({
 
 export function ProfilePanel() {
   const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
   const { openPasswordChange } = usePasswordChange();
+  const [editing, setEditing] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+
+  useEffect(() => {
+    if (!user || !editing) return;
+    setFirstName(user.first_name);
+    setLastName(user.last_name ?? "");
+    setPhone(user.phone ?? "");
+  }, [user, editing]);
+
+  const saveMutation = useMutation({
+    mutationFn: () =>
+      apiFetch<AuthUser>("/auth/me", {
+        method: "PATCH",
+        body: JSON.stringify({
+          first_name: firstName.trim(),
+          last_name: lastName.trim() || null,
+          phone: phone.trim() || null,
+        }),
+      }),
+    onSuccess: (updated) => {
+      setUser(updated);
+      setEditing(false);
+    },
+  });
 
   if (!user) return null;
 
@@ -42,9 +77,15 @@ export function ProfilePanel() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Profile</h1>
-        <p className="mt-1 text-sm text-slate-500">Your account details and security settings</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Profile</h1>
+          <p className="mt-1 text-sm text-slate-500">Your account details and security settings</p>
+        </div>
+        <Button type="button" variant="outline" onClick={() => setEditing(true)}>
+          <Pencil className="mr-2 h-4 w-4" />
+          Edit profile
+        </Button>
       </div>
 
       <Card>
@@ -106,6 +147,67 @@ export function ProfilePanel() {
       </div>
 
       {user.role === "employee" && <HrPanel selfOnly />}
+
+      <Modal
+        open={editing}
+        onClose={() => !saveMutation.isPending && setEditing(false)}
+        title="Edit profile"
+        description="Update your name and phone. Email and username stay the same."
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={saveMutation.isPending}
+              onClick={() => setEditing(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              disabled={saveMutation.isPending || !firstName.trim()}
+              onClick={() => saveMutation.mutate()}
+            >
+              {saveMutation.isPending ? "Saving…" : "Save changes"}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label>First name</Label>
+              <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+            </div>
+            <div>
+              <Label>Last name</Label>
+              <Input value={lastName} onChange={(e) => setLastName(e.target.value)} />
+            </div>
+          </div>
+          <div>
+            <Label>Phone</Label>
+            <Input
+              type="tel"
+              placeholder="e.g. 9876543210"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <Label>Email</Label>
+              <Input value={user.email} disabled />
+            </div>
+            <div>
+              <Label>Username</Label>
+              <Input value={user.username} disabled />
+            </div>
+          </div>
+          {saveMutation.isError && (
+            <p className="text-sm text-red-600">{(saveMutation.error as Error).message}</p>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

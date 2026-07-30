@@ -50,11 +50,23 @@ export default function ForgotPasswordPage() {
         </div>
         {mutation.isError && <p className="text-sm text-red-600">{(mutation.error as Error).message}</p>}
         {mutation.isSuccess && (
-          <div className="rounded-lg bg-indigo-50 px-3 py-2 text-sm text-indigo-700">
+          <div className="space-y-3 rounded-lg bg-indigo-50 px-3 py-2 text-sm text-indigo-700">
             {token ? (
-              <p>
-                Email could not be delivered. Use the temporary reset token below for development.
-              </p>
+              <>
+                <p>
+                  Email is not configured yet, so no inbox message was sent. Continue below to set a
+                  new password.
+                </p>
+                <Button asChild className="w-full">
+                  <Link
+                    href={`/reset-password?token=${encodeURIComponent(token)}${
+                      accountEmail ? `&email=${encodeURIComponent(accountEmail)}` : ""
+                    }`}
+                  >
+                    Continue to reset password
+                  </Link>
+                </Button>
+              </>
             ) : accountEmail ? (
               <p>
                 If this account exists, a reset link has been sent to <strong>{accountEmail}</strong>.
@@ -62,7 +74,6 @@ export default function ForgotPasswordPage() {
             ) : (
               <p>If that email is registered, a reset link has been sent.</p>
             )}
-            {token && <p className="mt-2 break-all font-mono text-xs">{token}</p>}
           </div>
         )}
         <Button type="submit" className="h-11 w-full" disabled={mutation.isPending}>
@@ -70,17 +81,6 @@ export default function ForgotPasswordPage() {
         </Button>
       </form>
       <p className="mt-4 text-sm">
-        <Link
-          href={
-            token
-              ? `/reset-password?token=${encodeURIComponent(token)}${accountEmail ? `&email=${encodeURIComponent(accountEmail)}` : ""}`
-              : "/reset-password"
-          }
-          className="text-indigo-600 hover:underline"
-        >
-          Reset password page
-        </Link>
-        {" · "}
         <Link href="/login" className="text-indigo-600 hover:underline">
           Back to sign in
         </Link>
