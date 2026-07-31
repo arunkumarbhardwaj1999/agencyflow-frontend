@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type PaginationBarProps = {
@@ -25,76 +26,79 @@ export function PaginationBar({
   to,
   onPageChange,
   onPageSizeChange,
-  pageSizeOptions = [10, 25, 50],
+  pageSizeOptions = [5, 10, 25, 50],
   className,
 }: PaginationBarProps) {
   if (total === 0) return null;
 
-  const showPager = totalPages > 1 || total > pageSizeOptions[0];
+  const canPrev = page > 1;
+  const canNext = page < totalPages;
 
   return (
     <div
       className={cn(
-        "mt-4 flex flex-wrap items-center justify-between gap-3 px-1",
+        "mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/60 px-3 py-3 sm:px-4",
         className,
       )}
     >
-      <p className="text-[13px] text-slate-500">
-        <span className="font-medium text-slate-800">{from}</span>
-        <span className="mx-1 text-slate-300">–</span>
-        <span className="font-medium text-slate-800">{to}</span>
-        <span className="mx-1.5 text-slate-400">of</span>
+      <p className="text-sm text-slate-600">
+        Showing{" "}
+        <span className="font-semibold text-slate-900">{from}</span>
+        –
+        <span className="font-semibold text-slate-900">{to}</span>
+        {" "}of{" "}
         <span className="font-semibold text-slate-900">{total}</span>
       </p>
 
-      {showPager ? (
-        <div className="inline-flex items-center gap-1 rounded-full border border-slate-200/90 bg-white p-1 shadow-sm">
-          {onPageSizeChange ? (
-            <>
-              <label className="flex items-center gap-1.5 pl-2.5 pr-1 text-[11px] font-medium text-slate-400">
-                Per page
-                <select
-                  className="h-7 cursor-pointer rounded-full border-0 bg-slate-50 px-2 text-xs font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-200"
-                  value={String(pageSize)}
-                  onChange={(e) => onPageSizeChange(Number(e.target.value))}
-                  aria-label="Rows per page"
-                >
-                  {pageSizeOptions.map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <span className="mx-0.5 h-4 w-px bg-slate-200" />
-            </>
-          ) : null}
+      <div className="flex flex-wrap items-center gap-2">
+        {onPageSizeChange ? (
+          <label className="flex items-center gap-2 text-sm text-slate-500">
+            <span>Rows</span>
+            <select
+              className="h-9 cursor-pointer rounded-lg border border-slate-200 bg-white px-2.5 text-sm font-medium text-slate-800 outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+              value={String(pageSize)}
+              onChange={(e) => onPageSizeChange(Number(e.target.value))}
+              aria-label="Rows per page"
+            >
+              {pageSizeOptions.map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
 
-          <button
+        <div className="flex items-center gap-1.5">
+          <Button
             type="button"
-            disabled={page <= 1}
+            variant="outline"
+            size="sm"
+            className="h-9 gap-1 px-3"
+            disabled={!canPrev}
             onClick={() => onPageChange(page - 1)}
             aria-label="Previous page"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 disabled:pointer-events-none disabled:opacity-35"
           >
             <ChevronLeft className="h-4 w-4" />
-          </button>
-          <span className="min-w-[3.25rem] px-1 text-center text-xs font-semibold tabular-nums text-slate-800">
-            {page}
-            <span className="mx-0.5 font-normal text-slate-400">/</span>
-            {totalPages}
+            <span className="hidden sm:inline">Previous</span>
+          </Button>
+          <span className="min-w-[4.5rem] px-2 text-center text-sm font-semibold tabular-nums text-slate-800">
+            {page} / {totalPages}
           </span>
-          <button
+          <Button
             type="button"
-            disabled={page >= totalPages}
+            variant="outline"
+            size="sm"
+            className="h-9 gap-1 px-3"
+            disabled={!canNext}
             onClick={() => onPageChange(page + 1)}
             aria-label="Next page"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 disabled:pointer-events-none disabled:opacity-35"
           >
+            <span className="hidden sm:inline">Next</span>
             <ChevronRight className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
-      ) : null}
+      </div>
     </div>
   );
 }

@@ -139,61 +139,53 @@ export function OwnerDashboardView() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="relative overflow-hidden rounded-3xl border border-slate-800 bg-slate-950 text-white shadow-[0_20px_50px_rgba(15,23,42,0.35)] lg:col-span-2">
-          <div className="pointer-events-none absolute -left-16 top-0 h-56 w-56 rounded-full bg-emerald-500/20 blur-3xl" />
-          <div className="pointer-events-none absolute -right-10 bottom-0 h-48 w-48 rounded-full bg-amber-400/15 blur-3xl" />
-          <div className="relative flex flex-wrap items-start justify-between gap-3 px-5 pb-2 pt-5 sm:px-6">
+        <Card className="relative overflow-hidden lg:col-span-2">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-emerald-50/60 to-transparent" />
+          <CardHeader className="relative flex flex-row flex-wrap items-start justify-between gap-3 border-0 pb-0">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-300/80">
-                Analytics
-              </p>
-              <h3 className="mt-1 text-lg font-semibold tracking-tight">Cash flow</h3>
-              <p className="mt-1 text-xs text-slate-400">
+              <CardTitle className="text-base">Cash flow</CardTitle>
+              <p className="mt-1 text-xs text-slate-500">
                 Inflow vs outflow — last 6 months
               </p>
             </div>
             <div className="flex flex-col items-end gap-2">
-              <Link
-                href="/finance"
-                className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white hover:bg-white/15"
-              >
-                Open Finance
+              <Link href="/finance" className="text-sm font-medium text-indigo-600 hover:underline">
+                Finance
               </Link>
               <ChartLegend
-                className="text-slate-300"
                 items={[
-                  { label: "Inflow", color: "#34d399" },
-                  { label: "Outflow", color: "#fbbf24" },
+                  { label: "Inflow", color: "#059669" },
+                  { label: "Outflow", color: "#d97706" },
                 ]}
               />
             </div>
-          </div>
-          <div className="relative h-[22rem] px-2 pb-4 sm:px-3">
+          </CardHeader>
+          <CardContent className="relative h-80 pt-2">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={cashChart} margin={{ top: 16, right: 16, left: 4, bottom: 8 }}>
+              <AreaChart data={cashChart} margin={{ top: 12, right: 12, left: 0, bottom: 4 }}>
                 <defs>
                   <linearGradient id="inflowFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#34d399" stopOpacity={0.55} />
-                    <stop offset="100%" stopColor="#34d399" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#059669" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="#059669" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="outflowFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#fbbf24" stopOpacity={0.4} />
-                    <stop offset="100%" stopColor="#fbbf24" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#d97706" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#d97706" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 10" stroke="rgba(148,163,184,0.18)" vertical={false} />
+                <CartesianGrid strokeDasharray="4 8" stroke="#e2e8f0" vertical={false} />
                 <XAxis
                   dataKey="name"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fontSize: 12, fill: "#94a3b8", fontWeight: 600 }}
-                  dy={10}
+                  tick={{ fontSize: 12, fill: "#64748b", fontWeight: 500 }}
+                  dy={8}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  width={52}
-                  tick={{ fontSize: 11, fill: "#64748b" }}
+                  width={56}
+                  tick={{ fontSize: 11, fill: "#94a3b8" }}
                   tickFormatter={(v) =>
                     new Intl.NumberFormat("en-IN", {
                       notation: "compact",
@@ -201,29 +193,29 @@ export function OwnerDashboardView() {
                     }).format(Number(v) || 0)
                   }
                 />
-                <Tooltip content={<ChartTooltip />} cursor={{ stroke: "rgba(255,255,255,0.25)", strokeWidth: 1 }} />
+                <Tooltip content={<ChartTooltip />} cursor={{ stroke: "#cbd5e1", strokeWidth: 1 }} />
                 <Area
                   type="monotone"
                   dataKey="inflow"
-                  stroke="#34d399"
-                  strokeWidth={3}
+                  stroke="#059669"
+                  strokeWidth={2.5}
                   fill="url(#inflowFill)"
                   name="Inflow"
-                  activeDot={{ r: 6, strokeWidth: 3, stroke: "#0f172a", fill: "#34d399" }}
+                  activeDot={{ r: 5, strokeWidth: 2, stroke: "#fff", fill: "#059669" }}
                 />
                 <Area
                   type="monotone"
                   dataKey="outflow"
-                  stroke="#fbbf24"
-                  strokeWidth={3}
+                  stroke="#d97706"
+                  strokeWidth={2.5}
                   fill="url(#outflowFill)"
                   name="Outflow"
-                  activeDot={{ r: 6, strokeWidth: 3, stroke: "#0f172a", fill: "#fbbf24" }}
+                  activeDot={{ r: 5, strokeWidth: 2, stroke: "#fff", fill: "#d97706" }}
                 />
               </AreaChart>
             </ResponsiveContainer>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         <Card className="relative overflow-hidden">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-sky-50/80 to-transparent" />
@@ -374,51 +366,46 @@ export function OwnerDashboardView() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-900 to-sky-950 text-white shadow-[0_20px_50px_rgba(15,23,42,0.25)] lg:col-span-2">
-          <div className="pointer-events-none absolute right-0 top-0 h-40 w-40 rounded-full bg-sky-400/20 blur-3xl" />
-          <div className="pointer-events-none absolute bottom-0 left-10 h-32 w-32 rounded-full bg-teal-400/15 blur-3xl" />
-          <div className="relative flex flex-wrap items-start justify-between gap-3 px-5 pb-2 pt-5 sm:px-6">
+        <Card className="relative overflow-hidden lg:col-span-2">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-sky-50/70 to-transparent" />
+          <CardHeader className="relative flex flex-row flex-wrap items-start justify-between gap-3 border-0 pb-0">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-sky-300/80">
-                Performance
-              </p>
-              <h3 className="mt-1 text-lg font-semibold tracking-tight">Growth</h3>
-              <p className="mt-1 text-xs text-slate-400">Month-over-month revenue and net cash</p>
+              <CardTitle className="text-base">Growth</CardTitle>
+              <p className="mt-1 text-xs text-slate-500">Month-over-month revenue and net cash</p>
             </div>
             <ChartLegend
-              className="text-slate-300"
               items={[
-                { label: "Revenue", color: "#2dd4bf" },
-                { label: "Net", color: "#38bdf8" },
+                { label: "Revenue", color: "#0d9488" },
+                { label: "Net", color: "#0284c7" },
               ]}
             />
-          </div>
-          <div className="relative h-72 px-2 pb-4 sm:px-3">
+          </CardHeader>
+          <CardContent className="relative h-72 pt-2">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={cashChart} barGap={8} barCategoryGap="24%">
                 <defs>
                   <linearGradient id="revenueBar" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#5eead4" />
-                    <stop offset="100%" stopColor="#0d9488" />
+                    <stop offset="0%" stopColor="#14b8a6" />
+                    <stop offset="100%" stopColor="#0f766e" />
                   </linearGradient>
                   <linearGradient id="netBar" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#7dd3fc" />
+                    <stop offset="0%" stopColor="#38bdf8" />
                     <stop offset="100%" stopColor="#0284c7" />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 10" stroke="rgba(148,163,184,0.16)" vertical={false} />
+                <CartesianGrid strokeDasharray="4 8" stroke="#e2e8f0" vertical={false} />
                 <XAxis
                   dataKey="name"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fontSize: 12, fill: "#94a3b8", fontWeight: 600 }}
-                  dy={10}
+                  tick={{ fontSize: 12, fill: "#64748b", fontWeight: 500 }}
+                  dy={8}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  width={52}
-                  tick={{ fontSize: 11, fill: "#64748b" }}
+                  width={56}
+                  tick={{ fontSize: 11, fill: "#94a3b8" }}
                   tickFormatter={(v) =>
                     new Intl.NumberFormat("en-IN", {
                       notation: "compact",
@@ -428,26 +415,26 @@ export function OwnerDashboardView() {
                 />
                 <Tooltip
                   content={<ChartTooltip />}
-                  cursor={{ fill: "rgba(255,255,255,0.06)", radius: 10 }}
+                  cursor={{ fill: "rgba(148, 163, 184, 0.12)", radius: 8 }}
                 />
                 <Bar
                   dataKey="inflow"
                   name="Revenue"
                   fill="url(#revenueBar)"
-                  radius={[10, 10, 4, 4]}
-                  maxBarSize={40}
+                  radius={[8, 8, 4, 4]}
+                  maxBarSize={36}
                 />
                 <Bar
                   dataKey="net"
                   name="Net"
                   fill="url(#netBar)"
-                  radius={[10, 10, 4, 4]}
-                  maxBarSize={40}
+                  radius={[8, 8, 4, 4]}
+                  maxBarSize={36}
                 />
               </BarChart>
             </ResponsiveContainer>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
         <Card className="relative overflow-hidden">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-emerald-50/80 to-transparent" />
           <CardHeader className="relative border-0 pb-0">
