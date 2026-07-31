@@ -18,6 +18,8 @@ import { Select } from "@/components/ui/select";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { Reveal } from "@/components/ui/reveal";
 import { Modal } from "@/components/ui/modal";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import { useClientPagination } from "@/hooks/use-client-pagination";
 
 const userSchema = z.object({
   first_name: z.string().min(1, "First name is required"),
@@ -82,6 +84,7 @@ export function TeamPanel() {
   const [lastInviteEmail, setLastInviteEmail] = useState<string | null>(null);
   const [resendUserId, setResendUserId] = useState<string | null>(null);
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+  const [search, setSearch] = useState("");
   const { register, handleSubmit, reset, formState: { errors } } = useForm<z.infer<typeof userSchema>>({
     resolver: zodResolver(userSchema),
     defaultValues: { role: "employee" },
@@ -98,6 +101,18 @@ export function TeamPanel() {
     queryKey: ["staff-members"],
     queryFn: () => apiFetch<Member[]>("/users/members"),
   });
+  const filteredStaff = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return staff;
+    return staff.filter((u) => {
+      const fullName = `${u.first_name} ${u.last_name ?? ""}`.toLowerCase();
+      return (
+        fullName.includes(term) ||
+        u.email.toLowerCase().includes(term) ||
+        u.role.toLowerCase().includes(term)
+      );
+    });
+  }, [staff, search]);
   const { data: groups = [] } = useQuery({
     queryKey: ["staff-groups"],
     queryFn: () => apiFetch<TeamGroup[]>("/users/groups"),
@@ -187,17 +202,16 @@ export function TeamPanel() {
     setShowModal(true);
   }
   const pendingInvites = useMemo(() => staff.filter((u) => !u.is_verified), [staff]);
+  const rosterPagination = useClientPagination(filteredStaff, { resetKey: search });
+  const activatePagination = useClientPagination(staff);
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="app-page-title">Users</h1>
-          <p className="app-page-subtitle">
-            Active users ({activeCount})
-            {pendingCount > 0 ? ` · ${pendingCount} pending invite${pendingCount > 1 ? "s" : ""}` : ""}
-          </p>
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <p className="text-sm text-slate-500">
+          Active users ({activeCount})
+          {pendingCount > 0 ? ` · ${pendingCount} pending invite${pendingCount > 1 ? "s" : ""}` : ""}
+        </p>
         {tab === "users" && (
           <Button onClick={openModal} className="gap-2">
             <Plus className="h-4 w-4" />
@@ -360,8 +374,14 @@ export function TeamPanel() {
         <>
           <Reveal>
             <Card className="overflow-hidden">
-              <CardHeader>
+              <CardHeader className="flex flex-col gap-3 space-y-0 sm:flex-row sm:items-center sm:justify-between">
                 <CardTitle className="text-base">Team members</CardTitle>
+                <Input
+                  className="sm:max-w-xs"
+                  placeholder="Search by name, email, role…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
               </CardHeader>
               <CardContent className="px-0 pb-0">
                 <Table>
@@ -374,7 +394,7 @@ export function TeamPanel() {
                     </TR>
                   </THead>
                   <TBody>
-                    {staff.map((u) => {
+                    {rosterPagination.pageItems.map((u) => {
                       const status = memberStatus(u);
                       return (
                         <TR key={u.id}>
@@ -416,6 +436,16 @@ export function TeamPanel() {
                     })}
                   </TBody>
                 </Table>
+                <PaginationBar
+                  page={rosterPagination.page}
+                  totalPages={rosterPagination.totalPages}
+                  total={rosterPagination.total}
+                  pageSize={rosterPagination.pageSize}
+                  from={rosterPagination.from}
+                  to={rosterPagination.to}
+                  onPageChange={rosterPagination.setPage}
+                  onPageSizeChange={rosterPagination.setPageSize}
+                />
               </CardContent>
             </Card>
           </Reveal>
@@ -479,7 +509,7 @@ export function TeamPanel() {
                   </TR>
                 </THead>
                 <TBody>
-                  {staff.map((u) => (
+                  {activatePagination.pageItems.map((u) => (
                     <TR key={u.id}>
                       <TD>{u.first_name} {u.last_name ?? ""}</TD>
                       <TD className="text-indigo-700">{u.email}</TD>
@@ -517,6 +547,16 @@ export function TeamPanel() {
                   ))}
                 </TBody>
               </Table>
+              <PaginationBar
+                page={activatePagination.page}
+                totalPages={activatePagination.totalPages}
+                total={activatePagination.total}
+                pageSize={activatePagination.pageSize}
+                from={activatePagination.from}
+                to={activatePagination.to}
+                onPageChange={activatePagination.setPage}
+                onPageSizeChange={activatePagination.setPageSize}
+              />
             </CardContent>
           </Card>
         </Reveal>

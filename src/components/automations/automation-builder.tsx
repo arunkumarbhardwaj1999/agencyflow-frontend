@@ -21,6 +21,8 @@ import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { FEATURES } from "@/lib/feature-flags";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import { useClientPagination } from "@/hooks/use-client-pagination";
 
 function newBlock(type: string): AutomationActionBlock {
   return {
@@ -49,14 +51,11 @@ export function AutomationsList() {
     queryKey: ["automations"],
     queryFn: () => apiFetch<Automation[]>("/automations"),
   });
+  const pagination = useClientPagination(automations);
 
   return (
     <div>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Automations</h1>
-          <p className="text-sm text-slate-500">Visual workflows — triggers and actions without code.</p>
-        </div>
+      <div className="mb-6 flex flex-wrap items-center justify-end gap-3">
         <Button asChild>
           <Link href="/automations/new">
             <Plus className="mr-1 h-4 w-4" />New automation
@@ -76,7 +75,7 @@ export function AutomationsList() {
         </div>
       ) : (
         <div className="space-y-2">
-          {automations.map((a) => (
+          {pagination.pageItems.map((a) => (
             <Link
               key={a.id}
               href={`/automations/${a.id}`}
@@ -98,6 +97,17 @@ export function AutomationsList() {
               </Badge>
             </Link>
           ))}
+          <PaginationBar
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            pageSize={pagination.pageSize}
+            from={pagination.from}
+            to={pagination.to}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
+            className="rounded-xl border border-slate-100"
+          />
         </div>
       )}
     </div>

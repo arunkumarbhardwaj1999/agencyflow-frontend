@@ -71,14 +71,14 @@ export function CinematicRegisterForm() {
       <div className="grid gap-3 sm:grid-cols-2">
         <AuthField
           label="First name"
-          placeholder="Aastha"
+          placeholder="Enter your first name"
           icon={<User className="h-4 w-4" />}
           value={firstName}
           onChange={(e) => setFirstName(e.target.value)}
         />
         <AuthField
           label="Last name"
-          placeholder="Gupta"
+          placeholder="Enter your last name"
           icon={<User className="h-4 w-4" />}
           value={lastName}
           onChange={(e) => setLastName(e.target.value)}
@@ -89,7 +89,7 @@ export function CinematicRegisterForm() {
         <AuthField
           label="Email"
           type="email"
-          placeholder="you@agency.com"
+          placeholder="Enter your email"
           autoComplete="email"
           icon={<Mail className="h-4 w-4" />}
           value={email}

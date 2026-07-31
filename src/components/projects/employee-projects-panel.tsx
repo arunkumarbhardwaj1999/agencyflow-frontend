@@ -1,16 +1,19 @@
 "use client";
 
-import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { FolderKanban, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import type { Member, Project, Task } from "@/lib/types";
 import { useMembers } from "@/lib/use-members";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { ProjectDocuments } from "./project-documents";
+import Link from "next/link";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import { useClientPagination } from "@/hooks/use-client-pagination";
 
 const statusColors: Record<string, "default" | "secondary" | "success" | "warning"> = {
   planning: "secondary",
@@ -20,6 +23,7 @@ const statusColors: Record<string, "default" | "secondary" | "success" | "warnin
 };
 
 export function EmployeeProjectsPanel() {
+  const [search, setSearch] = useState("");
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ["projects"],
     queryFn: () => apiFetch<Project[]>("/projects"),
@@ -44,25 +48,39 @@ export function EmployeeProjectsPanel() {
     return map;
   }, [tasks, members]);
 
+  const filteredProjects = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return projects;
+    return projects.filter(
+      (p) =>
+        p.title.toLowerCase().includes(term) ||
+        (p.description ?? "").toLowerCase().includes(term) ||
+        p.status.toLowerCase().includes(term),
+    );
+  }, [projects, search]);
+  const pagination = useClientPagination(filteredProjects, { resetKey: search });
+
   return (
     <div>
-      <div className="mb-5">
-        <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-slate-900">
-          <FolderKanban className="h-6 w-6 text-indigo-600" />
-          My Projects
-        </h1>
-        <p className="text-sm text-slate-500">Only projects where you have assigned work.</p>
+      <p className="mb-4 text-sm text-slate-500">Only projects where you have assigned work.</p>
+
+      <div className="mb-4">
+        <Input
+          placeholder="Search my projects…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
 
       {isLoading ? (
         <p className="text-sm text-slate-500">Loading projects…</p>
-      ) : projects.length === 0 ? (
+      ) : filteredProjects.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center">
-          <p className="text-slate-600">No assigned projects yet.</p>
+          <p className="text-slate-600">{projects.length === 0 ? "No assigned projects yet." : "No projects match your search."}</p>
         </div>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
-          {projects.map((p) => {
+          {pagination.pageItems.map((p) => {
             const team = teamByProject.get(p.id) ?? [];
             return (
               <article
@@ -121,6 +139,17 @@ export function EmployeeProjectsPanel() {
           })}
         </div>
       )}
+      <PaginationBar
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        total={pagination.total}
+        pageSize={pagination.pageSize}
+        from={pagination.from}
+        to={pagination.to}
+        onPageChange={pagination.setPage}
+        onPageSizeChange={pagination.setPageSize}
+        className="mt-4 rounded-xl border border-slate-100"
+      />
     </div>
   );
 }

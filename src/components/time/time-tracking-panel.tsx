@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Clock, Play, Square } from "lucide-react";
+import { Play, Square } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import type { ActiveTimer, Task, TimeEntry, UserTimeSummary } from "@/lib/types";
 import { formatDurationClock } from "@/lib/time-utils";
@@ -12,6 +12,8 @@ import { EmployeeTimeSummary } from "@/components/time/employee-time-summary";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import { useClientPagination } from "@/hooks/use-client-pagination";
 
 export function TimeTrackingPanel() {
   const queryClient = useQueryClient();
@@ -35,6 +37,7 @@ export function TimeTrackingPanel() {
     queryKey: ["time-summary"],
     queryFn: () => apiFetch<UserTimeSummary>("/time/summary/me"),
   });
+  const pagination = useClientPagination(entries);
 
   const openTasks = useMemo(
     () => tasks.filter((t) => t.status !== "done"),
@@ -74,14 +77,6 @@ export function TimeTrackingPanel() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-slate-900">
-          <Clock className="h-6 w-6 text-indigo-600" />
-          Time Tracking
-        </h1>
-        <p className="text-sm text-slate-500">Start a timer on your tasks and review hours logged.</p>
-      </div>
-
       <div className="grid gap-6 lg:grid-cols-3">
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">Timer</h2>
@@ -161,7 +156,7 @@ export function TimeTrackingPanel() {
           <p className="text-sm text-slate-500">No time logged yet.</p>
         ) : (
           <ul className="divide-y divide-slate-100">
-            {entries.map((e) => (
+            {pagination.pageItems.map((e) => (
               <li key={e.id} className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm">
                 <div>
                   <p className="font-medium text-slate-900">{e.task_title ?? "Task"}</p>
@@ -182,6 +177,17 @@ export function TimeTrackingPanel() {
             ))}
           </ul>
         )}
+        <PaginationBar
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          total={pagination.total}
+          pageSize={pagination.pageSize}
+          from={pagination.from}
+          to={pagination.to}
+          onPageChange={pagination.setPage}
+          onPageSizeChange={pagination.setPageSize}
+          className="mt-3 rounded-xl border border-slate-100"
+        />
       </section>
     </div>
   );

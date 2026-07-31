@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   LayoutDashboard,
+  LayoutGrid,
   Users,
   UserCog,
   Kanban,
@@ -10,14 +11,10 @@ import {
   CalendarDays,
   FolderKanban,
   Receipt,
-  LayoutGrid,
-  Plug,
   Briefcase,
-  Workflow,
   ListTodo,
   Folders,
   Settings,
-  BarChart3,
   Inbox,
   FileSignature,
   Clock,
@@ -59,7 +56,6 @@ const managerNavGroups: { title: string; items: NavItem[] }[] = [
       { href: "/calendar", label: "Calendar", icon: CalendarDays },
       { href: "/documents", label: "Documents", icon: Folders },
       { href: "/inbox", label: "Communication Center", icon: Inbox },
-      { href: "/reports", label: "Reports", icon: BarChart3 },
     ],
   },
 ];
@@ -78,11 +74,8 @@ const ownerNavGroups: { title: string; items: NavItem[] }[] = [
       { href: "/documents", label: "Documents", icon: Folders },
       { href: "/finance", label: "Finance", icon: Receipt },
       { href: "/hr", label: "HR", icon: Briefcase },
-      { href: "/automations", label: "Automation", icon: Workflow },
-      { href: "/reports", label: "Reports", icon: BarChart3 },
       { href: "/team", label: "Team", icon: UserCog },
       { href: "/settings", label: "Settings", icon: Settings },
-      { href: "/settings/integrations", label: "Integrations", icon: Plug },
     ],
   },
 ];

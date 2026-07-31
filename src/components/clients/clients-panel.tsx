@@ -21,6 +21,8 @@ import { Reveal } from "@/components/ui/reveal";
 import { Modal } from "@/components/ui/modal";
 import { AIResultModal } from "@/components/ai/ai-result-modal";
 import { FEATURES } from "@/lib/feature-flags";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import { useClientPagination } from "@/hooks/use-client-pagination";
 
 const AVATAR_GRADIENTS = [
   "from-indigo-500 to-violet-600",
@@ -125,6 +127,7 @@ export function ClientsPanel() {
         c.email.toLowerCase().includes(term),
     );
   }, [clients, search]);
+  const pagination = useClientPagination(filtered, { resetKey: search });
 
   function openCreate() {
     setEditing(null);
@@ -138,11 +141,7 @@ export function ClientsPanel() {
 
   return (
     <div>
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="app-page-title">Clients</h1>
-          <p className="app-page-subtitle">360° client directory — accounts, contacts, and portal access</p>
-        </div>
+      <div className="mb-5 flex flex-wrap items-center justify-end gap-2">
         <Button onClick={openCreate} className="gap-2">
           <Plus className="h-4 w-4" />
           Add client
@@ -226,76 +225,89 @@ export function ClientsPanel() {
       {isLoading ? (
         <p className="text-sm text-slate-500">Loading clients…</p>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((c, i) => (
-            <Reveal key={c.id} delay={Math.min(i * 50, 300)}>
-              <Card hover className="h-full">
-                <CardHeader className="pb-2">
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-sm font-semibold text-white ${avatarGradient(c.email)}`}
-                    >
-                      {c.business_name.charAt(0).toUpperCase()}
+        <>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {pagination.pageItems.map((c, i) => (
+              <Reveal key={c.id} delay={Math.min(i * 50, 300)}>
+                <Card hover className="h-full">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-sm font-semibold text-white ${avatarGradient(c.email)}`}
+                      >
+                        {c.business_name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <CardTitle className="truncate text-base">
+                          <Link href={`/clients/${c.id}`} className="hover:text-indigo-600 hover:underline">
+                            {c.business_name}
+                          </Link>
+                        </CardTitle>
+                        <p className="truncate text-sm text-slate-500">{c.name}</p>
+                      </div>
+                      {c.gst_number && <Badge variant="violet">GST</Badge>}
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <CardTitle className="truncate text-base">
-                        <Link href={`/clients/${c.id}`} className="hover:text-indigo-600 hover:underline">
-                          {c.business_name}
-                        </Link>
-                      </CardTitle>
-                      <p className="truncate text-sm text-slate-500">{c.name}</p>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm text-slate-600">
+                    <p className="truncate">{c.email}</p>
+                    {c.phone && <p>{c.phone}</p>}
+                    {c.assigned_user_id && (
+                      <p className="text-xs text-slate-500">
+                        Account manager: {memberMap.get(c.assigned_user_id) ?? "—"}
+                      </p>
+                    )}
+                    <div className="flex gap-2 pt-2">
+                      <Badge variant="info">{c.active_projects} projects</Badge>
+                      <Badge variant="secondary">{c.invoice_count} invoices</Badge>
                     </div>
-                    {c.gst_number && <Badge variant="violet">GST</Badge>}
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm text-slate-600">
-                  <p className="truncate">{c.email}</p>
-                  {c.phone && <p>{c.phone}</p>}
-                  {c.assigned_user_id && (
-                    <p className="text-xs text-slate-500">
-                      Account manager: {memberMap.get(c.assigned_user_id) ?? "—"}
-                    </p>
-                  )}
-                  <div className="flex gap-2 pt-2">
-                    <Badge variant="info">{c.active_projects} projects</Badge>
-                    <Badge variant="secondary">{c.invoice_count} invoices</Badge>
-                  </div>
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/clients/${c.id}`}>360° view</Link>
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => openEdit(c)}>
-                      Edit
-                    </Button>
-                    {FEATURES.ai && (
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/clients/${c.id}`}>360° view</Link>
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => openEdit(c)}>
+                        Edit
+                      </Button>
+                      {FEATURES.ai && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1"
+                          onClick={() => setAiClientId(c.id)}
+                        >
+                          <Sparkles className="h-3.5 w-3.5" />
+                          Welcome email
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
-                        className="gap-1"
-                        onClick={() => setAiClientId(c.id)}
+                        onClick={() => {
+                          if (confirm("Delete this client?")) deleteMutation.mutate(c.id);
+                        }}
                       >
-                        <Sparkles className="h-3.5 w-3.5" />
-                        Welcome email
+                        Delete
                       </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        if (confirm("Delete this client?")) deleteMutation.mutate(c.id);
-                      }}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </Reveal>
-          ))}
-          {filtered.length === 0 && (
-            <p className="text-sm text-slate-500">No clients found.</p>
-          )}
-        </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Reveal>
+            ))}
+            {filtered.length === 0 && (
+              <p className="text-sm text-slate-500">No clients found.</p>
+            )}
+          </div>
+          <PaginationBar
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            pageSize={pagination.pageSize}
+            from={pagination.from}
+            to={pagination.to}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
+            className="mt-4 rounded-xl border border-slate-100"
+          />
+        </>
       )}
       {deleteMutation.isError && (
         <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">

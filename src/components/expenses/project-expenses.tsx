@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import { useClientPagination } from "@/hooks/use-client-pagination";
 
 const CHART_COLORS = ["#6366f1", "#0ea5e9", "#f59e0b", "#10b981", "#f43f5e", "#a855f7", "#64748b"];
 
@@ -28,6 +30,7 @@ export function ProjectExpenses({ projectId }: { projectId: string }) {
     queryKey: ["project-expenses", projectId],
     queryFn: () => apiFetch<ProjectExpense[]>(`/projects/${projectId}/expenses`),
   });
+  const pagination = useClientPagination(expenses);
 
   const { data: profit } = useQuery({
     queryKey: ["project-profit", projectId],
@@ -100,7 +103,7 @@ export function ProjectExpenses({ projectId }: { projectId: string }) {
         <p className="text-sm text-slate-500">No expenses recorded yet.</p>
       ) : (
         <ul className="mb-6 space-y-2">
-          {expenses.map((e) => (
+          {pagination.pageItems.map((e) => (
             <li
               key={e.id}
               className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5"
@@ -124,6 +127,17 @@ export function ProjectExpenses({ projectId }: { projectId: string }) {
           ))}
         </ul>
       )}
+      <PaginationBar
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        total={pagination.total}
+        pageSize={pagination.pageSize}
+        from={pagination.from}
+        to={pagination.to}
+        onPageChange={pagination.setPage}
+        onPageSizeChange={pagination.setPageSize}
+        className="mb-6 rounded-xl border border-slate-100"
+      />
 
       {chartData.length > 0 && (
         <div>

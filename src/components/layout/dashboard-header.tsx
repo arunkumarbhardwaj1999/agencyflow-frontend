@@ -13,10 +13,12 @@ import { ProfileMenu } from "./profile-menu";
 
 export function DashboardHeader({
   title,
+  subtitle,
   showNewLead = false,
   onMenuClick,
 }: {
   title: string;
+  subtitle?: string;
   showNewLead?: boolean;
   onMenuClick?: () => void;
 }) {
@@ -64,22 +66,29 @@ export function DashboardHeader({
 
   return (
     <header className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/60 pb-4 sm:mb-6 sm:gap-4 sm:pb-5">
-      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+      <div className="flex min-w-0 items-start gap-2 sm:gap-3">
         {onMenuClick && (
           <button
             type="button"
             onClick={onMenuClick}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-white/90 text-slate-600 shadow-sm transition-colors hover:bg-white hover:text-indigo-600 lg:hidden"
+            className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-white/90 text-slate-600 shadow-sm transition-colors hover:bg-white hover:text-indigo-600 lg:hidden"
             aria-label="Open menu"
           >
             <Menu className="h-5 w-5" />
           </button>
         )}
-        <h1 className="app-page-title truncate text-[1.35rem] sm:text-[1.625rem]">{title}</h1>
-        <span
-          className={`h-2 w-2 shrink-0 rounded-full ring-2 ring-white ${statusColor}`}
-          title={`Live updates: ${status}`}
-        />
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <h1 className="app-page-title truncate text-[1.35rem] sm:text-[1.625rem]">{title}</h1>
+            <span
+              className={`h-2 w-2 shrink-0 rounded-full ring-2 ring-white ${statusColor}`}
+              title={`Live updates: ${status}`}
+            />
+          </div>
+          {subtitle ? (
+            <p className="mt-0.5 truncate text-sm text-slate-500">{subtitle}</p>
+          ) : null}
+        </div>
       </div>
       <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
         <div className="relative" ref={panelRef}>

@@ -8,7 +8,6 @@ import {
   UserCog,
   Workflow,
 } from "lucide-react";
-import { useAuthStore } from "@/stores/auth-store";
 import { usePasswordChange } from "@/components/auth/password-change-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,18 +40,10 @@ const links = [
 ];
 
 export function SettingsHub() {
-  const user = useAuthStore((s) => s.user);
   const { openPasswordChange } = usePasswordChange();
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Workspace settings</h1>
-        <p className="text-sm text-slate-500">
-          Full control of {user?.first_name ? "your" : "the"} AgencyFlow workspace — integrations, team, and security.
-        </p>
-      </div>
-
       <div className="grid gap-4 sm:grid-cols-2">
         {links.map(({ href, title, description, icon: Icon }) => (
           <Link

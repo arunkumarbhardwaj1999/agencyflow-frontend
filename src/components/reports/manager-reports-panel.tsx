@@ -27,6 +27,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import { useClientPagination } from "@/hooks/use-client-pagination";
 
 const PROJECT_COLORS = ["#94a3b8", "#0ea5e9", "#f59e0b", "#10b981"];
 
@@ -35,6 +37,7 @@ export function ManagerReportsPanel({ hideHeader = false }: { hideHeader?: boole
     queryKey: ["manager-reports"],
     queryFn: () => apiFetch<ManagerReports>("/reports/manager"),
   });
+  const productivityPagination = useClientPagination(data?.team_productivity ?? []);
 
   if (isLoading) {
     return (
@@ -204,7 +207,7 @@ export function ManagerReportsPanel({ hideHeader = false }: { hideHeader?: boole
                 </TR>
               </THead>
               <TBody>
-                {data.team_productivity.map((m) => (
+                {productivityPagination.pageItems.map((m) => (
                   <TR key={m.user_id}>
                     <TD className="font-semibold text-slate-900">{m.name}</TD>
                     <TD className="capitalize text-slate-500">{m.role}</TD>
@@ -218,6 +221,16 @@ export function ManagerReportsPanel({ hideHeader = false }: { hideHeader?: boole
               </TBody>
             </Table>
           )}
+          <PaginationBar
+            page={productivityPagination.page}
+            totalPages={productivityPagination.totalPages}
+            total={productivityPagination.total}
+            pageSize={productivityPagination.pageSize}
+            from={productivityPagination.from}
+            to={productivityPagination.to}
+            onPageChange={productivityPagination.setPage}
+            onPageSizeChange={productivityPagination.setPageSize}
+          />
         </CardContent>
       </Card>
     </div>

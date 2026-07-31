@@ -26,6 +26,8 @@ import { AIResultModal } from "@/components/ai/ai-result-modal";
 import { useAuthStore } from "@/stores/auth-store";
 import { EmployeeProjectsPanel } from "./employee-projects-panel";
 import { FEATURES } from "@/lib/feature-flags";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import { useClientPagination } from "@/hooks/use-client-pagination";
 
 const projectSchema = z.object({
   client_id: z.string().uuid(),
@@ -73,6 +75,7 @@ function ProjectsPanelAdmin() {
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [aiProjectId, setAiProjectId] = useState<string | null>(null);
   const [aiTaskId, setAiTaskId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
   const queryClient = useQueryClient();
 
   const { data: projects = [] } = useQuery({
@@ -92,6 +95,24 @@ function ProjectsPanelAdmin() {
     () => new Map<string, string>((members as Member[]).map((m) => [m.id, m.name])),
     [members],
   );
+  const clientMap = useMemo(
+    () => new Map(clients.map((c) => [c.id, c.business_name])),
+    [clients],
+  );
+  const filteredProjects = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return projects;
+    return projects.filter((p) => {
+      const clientName = clientMap.get(p.client_id) ?? "";
+      return (
+        p.title.toLowerCase().includes(term) ||
+        (p.description ?? "").toLowerCase().includes(term) ||
+        p.status.toLowerCase().includes(term) ||
+        clientName.toLowerCase().includes(term)
+      );
+    });
+  }, [projects, search, clientMap]);
+  const pagination = useClientPagination(filteredProjects, { resetKey: search });
 
   const projectForm = useForm<z.infer<typeof projectSchema>>({
     resolver: zodResolver(projectSchema),
@@ -159,15 +180,19 @@ function ProjectsPanelAdmin() {
 
   return (
     <div>
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="app-page-title">Projects &amp; tasks</h1>
-          <p className="app-page-subtitle">Track delivery workloads and progress</p>
-        </div>
+      <div className="mb-5 flex flex-wrap items-center justify-end gap-2">
         <Button onClick={() => setShowProjectModal(true)} className="gap-2">
           <Plus className="h-4 w-4" />
           New project
         </Button>
+      </div>
+
+      <div className="mb-4">
+        <Input
+          placeholder="Search projects by title, client, status…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
 
       <Modal
@@ -229,7 +254,7 @@ function ProjectsPanelAdmin() {
       </Modal>
 
       <div className="grid gap-4">
-        {projects.map((p) => {
+        {pagination.pageItems.map((p) => {
           const projectTasks = tasks.filter((t) => t.project_id === p.id);
           const expanded = expandedId === p.id;
           return (
@@ -403,6 +428,17 @@ function ProjectsPanelAdmin() {
         })}
         {projects.length === 0 && <p className="text-sm text-slate-500">No projects yet.</p>}
       </div>
+      <PaginationBar
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        total={pagination.total}
+        pageSize={pagination.pageSize}
+        from={pagination.from}
+        to={pagination.to}
+        onPageChange={pagination.setPage}
+        onPageSizeChange={pagination.setPageSize}
+        className="mt-4 rounded-xl border border-slate-100"
+      />
 
       <AIResultModal
         open={!!aiProjectId}

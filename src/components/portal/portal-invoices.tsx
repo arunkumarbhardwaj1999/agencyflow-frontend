@@ -7,6 +7,8 @@ import type { Invoice } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import { useClientPagination } from "@/hooks/use-client-pagination";
 
 const statusVariant: Record<string, "success" | "warning" | "danger" | "secondary"> = {
   paid: "success",
@@ -19,6 +21,7 @@ export function PortalInvoices() {
     queryKey: ["portal-invoices"],
     queryFn: () => apiFetch<Invoice[]>("/portal/invoices"),
   });
+  const pagination = useClientPagination(invoices);
 
   async function downloadPdf(inv: Invoice) {
     const blob = await apiBlob(`/portal/invoices/${inv.id}/pdf`);
@@ -45,7 +48,7 @@ export function PortalInvoices() {
         </div>
       ) : (
         <div className="space-y-3">
-          {invoices.map((inv) => (
+          {pagination.pageItems.map((inv) => (
             <div
               key={inv.id}
               className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
@@ -78,6 +81,17 @@ export function PortalInvoices() {
               </div>
             </div>
           ))}
+          <PaginationBar
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            pageSize={pagination.pageSize}
+            from={pagination.from}
+            to={pagination.to}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
+            className="rounded-xl border border-slate-100"
+          />
         </div>
       )}
     </div>

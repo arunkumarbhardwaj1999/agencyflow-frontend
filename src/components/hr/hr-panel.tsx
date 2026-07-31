@@ -16,6 +16,8 @@ import { Label } from "@/components/ui/label";
 import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import { useClientPagination } from "@/hooks/use-client-pagination";
 
 function timeLabel(iso: string | null) {
   if (!iso) return "—";
@@ -58,6 +60,10 @@ export function HrPanel({ selfOnly = false }: { selfOnly?: boolean }) {
     queryKey: ["hr-holidays"],
     queryFn: () => apiFetch<CompanyHoliday[]>("/hr/holidays"),
   });
+
+  const employeesPagination = useClientPagination(employees);
+  const leavesPagination = useClientPagination(leaves);
+  const holidaysPagination = useClientPagination(holidays);
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["hr-employees"] });
@@ -130,32 +136,22 @@ export function HrPanel({ selfOnly = false }: { selfOnly?: boolean }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">{selfOnly ? "Attendance & leaves" : "HR"}</h1>
-          <p className="text-sm text-slate-500">
-            {selfOnly
-              ? "Check in, request leave, and see your balances."
-              : "Attendance, leaves, salary, and hiring."}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button size="sm" variant="outline" onClick={() => setLeaveOpen(true)}>
-            <Plus className="mr-1 h-4 w-4" />Apply leave
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <Button size="sm" variant="outline" onClick={() => setLeaveOpen(true)}>
+          <Plus className="mr-1 h-4 w-4" />Apply leave
+        </Button>
+        {canManage && (
+          <Button size="sm" variant="outline" onClick={() => setHolidayOpen(true)}>
+            <CalendarDays className="mr-1 h-4 w-4" />Add holiday
           </Button>
-          {canManage && (
-            <Button size="sm" variant="outline" onClick={() => setHolidayOpen(true)}>
-              <CalendarDays className="mr-1 h-4 w-4" />Add holiday
-            </Button>
-          )}
-          {canManage && user?.role === "owner" && (
-            <Button size="sm" asChild>
-              <Link href="/team">
-                <UserPlus className="mr-1 h-4 w-4" />Hiring
-              </Link>
-            </Button>
-          )}
-        </div>
+        )}
+        {canManage && user?.role === "owner" && (
+          <Button size="sm" asChild>
+            <Link href="/team">
+              <UserPlus className="mr-1 h-4 w-4" />Hiring
+            </Link>
+          </Button>
+        )}
       </div>
 
       {canManage && user?.role === "owner" && (
@@ -246,7 +242,7 @@ export function HrPanel({ selfOnly = false }: { selfOnly?: boolean }) {
             <p className="text-sm text-slate-500">Loading…</p>
           ) : (
             <ul className="space-y-2">
-              {employees.map((emp) => (
+              {employeesPagination.pageItems.map((emp) => (
                 <li key={emp.user_id}>
                   <button
                     type="button"
@@ -273,6 +269,17 @@ export function HrPanel({ selfOnly = false }: { selfOnly?: boolean }) {
               ))}
             </ul>
           )}
+          <PaginationBar
+            page={employeesPagination.page}
+            totalPages={employeesPagination.totalPages}
+            total={employeesPagination.total}
+            pageSize={employeesPagination.pageSize}
+            from={employeesPagination.from}
+            to={employeesPagination.to}
+            onPageChange={employeesPagination.setPage}
+            onPageSizeChange={employeesPagination.setPageSize}
+            className="mt-3 rounded-xl border border-slate-100"
+          />
         </section>
         )}
 
@@ -288,7 +295,7 @@ export function HrPanel({ selfOnly = false }: { selfOnly?: boolean }) {
               <p className="text-sm text-slate-500">No leave requests yet.</p>
             ) : (
               <ul className="space-y-2">
-                {leaves.slice(0, 8).map((leave) => (
+                {leavesPagination.pageItems.map((leave) => (
                   <li key={leave.id} className="rounded-xl border border-slate-200 px-3 py-2.5">
                     <div className="flex items-start justify-between gap-2">
                       <div>
@@ -319,6 +326,17 @@ export function HrPanel({ selfOnly = false }: { selfOnly?: boolean }) {
                 ))}
               </ul>
             )}
+            <PaginationBar
+              page={leavesPagination.page}
+              totalPages={leavesPagination.totalPages}
+              total={leavesPagination.total}
+              pageSize={leavesPagination.pageSize}
+              from={leavesPagination.from}
+              to={leavesPagination.to}
+              onPageChange={leavesPagination.setPage}
+              onPageSizeChange={leavesPagination.setPageSize}
+              className="mt-3 rounded-xl border border-slate-100"
+            />
           </section>
 
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -329,7 +347,7 @@ export function HrPanel({ selfOnly = false }: { selfOnly?: boolean }) {
               <p className="text-sm text-slate-500">No holidays added.</p>
             ) : (
               <ul className="space-y-2">
-                {holidays.map((h) => (
+                {holidaysPagination.pageItems.map((h) => (
                   <li key={h.id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm">
                     <span className="font-medium text-slate-900">{h.title}</span>
                     <span className="text-slate-500">{format(new Date(h.holiday_date), "dd MMM yyyy")}</span>
@@ -337,6 +355,17 @@ export function HrPanel({ selfOnly = false }: { selfOnly?: boolean }) {
                 ))}
               </ul>
             )}
+            <PaginationBar
+              page={holidaysPagination.page}
+              totalPages={holidaysPagination.totalPages}
+              total={holidaysPagination.total}
+              pageSize={holidaysPagination.pageSize}
+              from={holidaysPagination.from}
+              to={holidaysPagination.to}
+              onPageChange={holidaysPagination.setPage}
+              onPageSizeChange={holidaysPagination.setPageSize}
+              className="mt-3 rounded-xl border border-slate-100"
+            />
           </section>
         </div>
       </div>

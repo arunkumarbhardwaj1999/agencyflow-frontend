@@ -91,11 +91,7 @@ export function CalendarView() {
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Calendar</h1>
-          <p className="text-sm text-slate-500">Meetings, calls, tasks, deadlines — all in one place</p>
-        </div>
+      <div className="mb-4 flex flex-wrap items-center justify-end gap-3">
         <div className="flex rounded-lg border border-slate-200 bg-white p-1">
           {VIEW_TABS.map((tab) => (
             <button

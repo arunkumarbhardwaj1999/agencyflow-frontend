@@ -26,6 +26,8 @@ import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
 import { FEATURES } from "@/lib/feature-flags";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import { useClientPagination } from "@/hooks/use-client-pagination";
 
 function formatFileSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
@@ -70,12 +72,14 @@ export function ClientDocuments({ clientId }: { clientId: string }) {
     },
   });
 
+  const pagination = useClientPagination(documents, { resetKey: `${search}|${folderFilter}` });
+
   const grouped = useMemo(() => {
     const map = new Map<string, ClientDocument[]>();
     for (const folder of CLIENT_DOCUMENT_FOLDERS) {
       map.set(folder.key, []);
     }
-    for (const doc of documents) {
+    for (const doc of pagination.pageItems) {
       const list = map.get(doc.folder) ?? [];
       list.push(doc);
       map.set(doc.folder, list);
@@ -84,7 +88,7 @@ export function ClientDocuments({ clientId }: { clientId: string }) {
       ...f,
       docs: map.get(f.key) ?? [],
     })).filter((g) => !folderFilter || g.key === folderFilter);
-  }, [documents, folderFilter]);
+  }, [pagination.pageItems, folderFilter]);
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["client-documents", clientId] });
@@ -324,6 +328,17 @@ export function ClientDocuments({ clientId }: { clientId: string }) {
               </section>
             ),
           )}
+          <PaginationBar
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            pageSize={pagination.pageSize}
+            from={pagination.from}
+            to={pagination.to}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
+            className="rounded-xl border border-slate-100"
+          />
         </div>
       )}
 

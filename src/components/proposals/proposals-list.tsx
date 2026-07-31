@@ -8,6 +8,8 @@ import { apiFetch } from "@/lib/api";
 import type { Proposal } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import { useClientPagination } from "@/hooks/use-client-pagination";
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-slate-100 text-slate-700",
@@ -21,14 +23,11 @@ export function ProposalsList() {
     queryKey: ["proposals"],
     queryFn: () => apiFetch<Proposal[]>("/proposals"),
   });
+  const pagination = useClientPagination(proposals);
 
   return (
     <div>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Proposals</h1>
-          <p className="text-sm text-slate-500">Create, preview, and send branded proposals to clients.</p>
-        </div>
+      <div className="mb-6 flex flex-wrap items-center justify-end gap-3">
         <Button asChild>
           <Link href="/proposals/new">
             <Plus className="mr-1 h-4 w-4" />
@@ -49,7 +48,7 @@ export function ProposalsList() {
         </div>
       ) : (
         <div className="space-y-2">
-          {proposals.map((p) => (
+          {pagination.pageItems.map((p) => (
             <Link
               key={p.id}
               href={`/proposals/${p.id}`}
@@ -69,6 +68,17 @@ export function ProposalsList() {
               <Badge className={STATUS_COLORS[p.status] ?? STATUS_COLORS.draft}>{p.status}</Badge>
             </Link>
           ))}
+          <PaginationBar
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            pageSize={pagination.pageSize}
+            from={pagination.from}
+            to={pagination.to}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
+            className="rounded-xl border border-slate-100"
+          />
         </div>
       )}
     </div>

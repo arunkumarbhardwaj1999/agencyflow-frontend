@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { KanbanColumnScroll } from "@/components/ui/kanban-column-scroll";
 import { DealFormDialog } from "./deal-form-dialog";
 
 const STAGE_DOT: Record<string, string> = {
@@ -147,29 +148,34 @@ function Column({
       ref={setNodeRef}
       className={`flex min-h-[440px] w-72 shrink-0 flex-col rounded-2xl border p-3 transition-colors ${isOver ? "border-indigo-300 bg-indigo-50/60 ring-2 ring-indigo-300" : "border-slate-200 bg-slate-50/70"}`}
     >
-      <div className="mb-3 flex items-center justify-between px-1">
+      <div className="mb-3 flex shrink-0 items-center justify-between px-1">
         <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-700">
           <span className={`h-2.5 w-2.5 rounded-full ${STAGE_DOT[stage] ?? "bg-slate-400"}`} />
           {title}
         </h3>
         <Badge variant="secondary">{deals.length}</Badge>
       </div>
-      <div className="flex flex-1 flex-col gap-2">
-        {deals.map((deal) => (
-          <DealCard
-            key={deal.id}
-            deal={deal}
-            memberName={deal.assigned_user_id ? memberMap.get(deal.assigned_user_id) : undefined}
-            onEdit={() => onEditDeal(deal)}
-            onDelete={() => onDeleteDeal(deal)}
-            onWin={
-              stage === "negotiation" && onWinDeal
-                ? () => onWinDeal(deal)
-                : undefined
-            }
-          />
-        ))}
-      </div>
+      <KanbanColumnScroll
+        itemCount={deals.length}
+        resetKey={`${stage}:${deals.map((d) => d.id).join(",")}`}
+      >
+        {(visibleCount) =>
+          deals.slice(0, visibleCount).map((deal) => (
+            <DealCard
+              key={deal.id}
+              deal={deal}
+              memberName={deal.assigned_user_id ? memberMap.get(deal.assigned_user_id) : undefined}
+              onEdit={() => onEditDeal(deal)}
+              onDelete={() => onDeleteDeal(deal)}
+              onWin={
+                stage === "negotiation" && onWinDeal
+                  ? () => onWinDeal(deal)
+                  : undefined
+              }
+            />
+          ))
+        }
+      </KanbanColumnScroll>
     </div>
   );
 }
@@ -270,11 +276,7 @@ export function DealsKanban() {
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Deals</h1>
-          <p className="text-sm text-slate-500">Sales opportunities — drag cards across stages</p>
-        </div>
+      <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
         <Button onClick={() => { setEditingDeal(null); setFormOpen(true); }} className="gap-2">
           <Plus className="h-4 w-4" />
           New deal
@@ -306,86 +308,105 @@ export function DealsKanban() {
         </div>
       </div>
 
+      <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
+          <Input
+            className="w-full lg:max-w-xs"
+            placeholder="Search title, company, email…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <Select
+            className="w-full lg:w-48"
+            value={assigneeFilter}
+            onChange={(e) => setAssigneeFilter(e.target.value)}
+          >
+            <option value="">All assignees</option>
+            {(members as Member[]).map((m) => (
+              <option key={m.id} value={m.id}>{m.name}</option>
+            ))}
+          </Select>
+          <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
+            {DEAL_STAGES.map((col) => {
+              const active = activeStages.includes(col.id);
+              const count = filteredColumns.find((c) => c.stage === col.id)?.deals.length ?? 0;
+              return (
+                <button
+                  key={col.id}
+                  type="button"
+                  onClick={() => toggleStage(col.id)}
+                  className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                    active
+                      ? "border-indigo-200 bg-indigo-50 text-indigo-700"
+                      : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
+                  }`}
+                >
+                  {col.title}
+                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600">{count}</span>
+                </button>
+              );
+            })}
+            {(search || assigneeFilter || activeStages.length !== DEAL_STAGES.length) && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearch("");
+                  setAssigneeFilter("");
+                  setActiveStages(DEAL_STAGES.map((col) => col.id));
+                }}
+              >
+                Reset
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
       {(moveMutation.isError || winMutation.isError || deleteMutation.isError) && (
         <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
           {((moveMutation.error ?? winMutation.error ?? deleteMutation.error) as Error).message}
         </p>
       )}
 
-      <div className="flex flex-col gap-4 lg:flex-row">
-        <aside className="w-full shrink-0 rounded-2xl border border-slate-200 bg-white p-4 lg:w-[280px]">
-          <p className="text-sm font-semibold text-slate-800">Filter deals</p>
-          <div className="mt-3 space-y-3">
-            <Input
-              placeholder="Search title, company, email…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <Select value={assigneeFilter} onChange={(e) => setAssigneeFilter(e.target.value)}>
-              <option value="">All assignees</option>
-              {(members as Member[]).map((m) => (
-                <option key={m.id} value={m.id}>{m.name}</option>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100/40 p-3">
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {filteredColumns
+              .filter((col) => activeStages.includes(col.stage))
+              .map((col) => (
+                <Column
+                  key={col.stage}
+                  stage={col.stage}
+                  title={col.label}
+                  deals={col.deals}
+                  memberMap={memberMap}
+                  onEditDeal={(deal) => { setEditingDeal(deal); setFormOpen(true); }}
+                  onDeleteDeal={(deal) => {
+                    if (confirm(`Delete deal "${deal.title}"?`)) deleteMutation.mutate(deal.id);
+                  }}
+                  onWinDeal={(deal) => {
+                    if (confirm(`Mark "${deal.title}" as won and create client?`)) {
+                      winMutation.mutate(deal.id);
+                    }
+                  }}
+                />
               ))}
-            </Select>
           </div>
-          <div className="mt-4 border-t border-slate-100 pt-4">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Stages</p>
-            <div className="space-y-2">
-              {DEAL_STAGES.map((col) => (
-                <label key={col.id} className="flex cursor-pointer items-center justify-between rounded-md px-1 py-1 text-sm text-slate-700 hover:bg-slate-50">
-                  <span className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={activeStages.includes(col.id)}
-                      onChange={() => toggleStage(col.id)}
-                    />
-                    {col.title}
-                  </span>
-                </label>
-              ))}
+        </div>
+        <DragOverlay>
+          {activeDeal ? (
+            <div className="w-64 rounded-lg border bg-white p-3 shadow-lg">
+              <p className="font-medium">{activeDeal.title}</p>
             </div>
-          </div>
-        </aside>
-
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        >
-          <div className="flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100/40 p-3">
-            <div className="flex gap-4 overflow-x-auto pb-2">
-              {filteredColumns
-                .filter((col) => activeStages.includes(col.stage))
-                .map((col) => (
-                  <Column
-                    key={col.stage}
-                    stage={col.stage}
-                    title={col.label}
-                    deals={col.deals}
-                    memberMap={memberMap}
-                    onEditDeal={(deal) => { setEditingDeal(deal); setFormOpen(true); }}
-                    onDeleteDeal={(deal) => {
-                      if (confirm(`Delete deal "${deal.title}"?`)) deleteMutation.mutate(deal.id);
-                    }}
-                    onWinDeal={(deal) => {
-                      if (confirm(`Mark "${deal.title}" as won and create client?`)) {
-                        winMutation.mutate(deal.id);
-                      }
-                    }}
-                  />
-                ))}
-            </div>
-          </div>
-          <DragOverlay>
-            {activeDeal ? (
-              <div className="w-64 rounded-lg border bg-white p-3 shadow-lg">
-                <p className="font-medium">{activeDeal.title}</p>
-              </div>
-            ) : null}
-          </DragOverlay>
-        </DndContext>
-      </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
 
       <DealFormDialog
         open={formOpen}

@@ -42,6 +42,8 @@ import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { Reveal } from "@/components/ui/reveal";
 import { Modal } from "@/components/ui/modal";
 import { AIResultModal } from "@/components/ai/ai-result-modal";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import { useClientPagination } from "@/hooks/use-client-pagination";
 import { useAuthStore } from "@/stores/auth-store";
 
 const schema = z.object({
@@ -71,7 +73,7 @@ const statusVariant: Record<string, "success" | "warning" | "danger" | "secondar
 
 const n = (v: string) => parseFloat(v) || 0;
 
-export function FinancePanel({ hideHeading = false }: { hideHeading?: boolean }) {
+export function FinancePanel() {
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
   const [showModal, setShowModal] = useState(false);
@@ -208,6 +210,7 @@ export function FinancePanel({ hideHeading = false }: { hideHeading?: boolean })
   const totalInvoiced = invoices.reduce((s, i) => s + n(i.total), 0);
   const totalPaid = invoices.filter((i) => i.status === "paid").reduce((s, i) => s + n(i.total), 0);
   const totalPending = invoices.filter((i) => i.status !== "paid").reduce((s, i) => s + n(i.total), 0);
+  const pagination = useClientPagination(invoices);
 
   return (
     <div className="space-y-6">
@@ -216,19 +219,7 @@ export function FinancePanel({ hideHeading = false }: { hideHeading?: boolean })
           {toast}
         </div>
       )}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        {!hideHeading ? (
-          <div>
-            <h1 className="app-page-title">Invoices &amp; billing</h1>
-            <p className="app-page-subtitle max-w-xl">
-              GST-compliant invoices — auto CGST+SGST or IGST, PDF export &amp; payment links
-            </p>
-          </div>
-        ) : (
-          <div>
-            <h2 className="app-section-title text-base">Invoices &amp; payments</h2>
-          </div>
-        )}
+      <div className="flex flex-wrap items-center justify-end gap-4">
         <div className="flex flex-wrap items-center gap-2">
           {FEATURES.whatsapp && (
             <Select
@@ -444,7 +435,7 @@ export function FinancePanel({ hideHeading = false }: { hideHeading?: boolean })
                   </TR>
                 </THead>
                 <TBody>
-                  {invoices.map((inv) => (
+                  {pagination.pageItems.map((inv) => (
                     <TR key={inv.id}>
                       <TD className="font-medium text-slate-900">{inv.invoice_number}</TD>
                       <TD>{inv.client_name ?? "—"}</TD>
@@ -544,6 +535,16 @@ export function FinancePanel({ hideHeading = false }: { hideHeading?: boolean })
                 </TBody>
               </Table>
             )}
+            <PaginationBar
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              total={pagination.total}
+              pageSize={pagination.pageSize}
+              from={pagination.from}
+              to={pagination.to}
+              onPageChange={pagination.setPage}
+              onPageSizeChange={pagination.setPageSize}
+            />
           </CardContent>
         </Card>
       </Reveal>

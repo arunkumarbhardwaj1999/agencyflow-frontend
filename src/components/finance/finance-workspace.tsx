@@ -25,6 +25,8 @@ import { FinancePanel } from "@/components/finance/finance-panel";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import { useClientPagination } from "@/hooks/use-client-pagination";
 
 const TABS = [
   { id: "invoices", label: "Invoices & payments" },
@@ -47,11 +49,6 @@ export function FinanceWorkspace() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="app-page-title">Finance</h1>
-        <p className="app-page-subtitle">Invoices, payments, expenses, and profitability.</p>
-      </div>
-
       <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
         {TABS.map((t) => (
           <button
@@ -69,7 +66,7 @@ export function FinanceWorkspace() {
         ))}
       </div>
 
-      {tab === "invoices" && <FinancePanel hideHeading />}
+      {tab === "invoices" && <FinancePanel />}
       {tab === "overview" && <FinanceProfitability />}
       {tab === "expenses" && <FinanceExpenses />}
     </div>
@@ -146,6 +143,7 @@ function FinanceExpenses() {
     queryKey: ["owner-expenses"],
     queryFn: () => apiFetch<OwnerExpense[]>("/reports/owner/expenses"),
   });
+  const pagination = useClientPagination(expenses);
 
   if (isLoading) return <p className="text-sm text-slate-500">Loading…</p>;
 
@@ -164,35 +162,48 @@ function FinanceExpenses() {
             .
           </p>
         ) : (
-          <ul className="space-y-2">
-            {expenses.map((e) => (
-              <li
-                key={e.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-100 px-3 py-2.5 text-sm"
-              >
-                <div>
-                  <p className="font-medium text-slate-900">{e.title}</p>
-                  <p className="text-xs text-slate-500">
-                    {e.category_label}
-                    {e.project_title ? (
-                      <>
-                        {" · "}
-                        <Link href={`/projects/${e.project_id}`} className="hover:text-indigo-600 hover:underline">
-                          {e.project_title}
-                        </Link>
-                      </>
-                    ) : null}
-                    {" · "}
-                    {format(new Date(e.expense_date), "dd MMM yyyy")}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">{e.category_label}</Badge>
-                  <span className="font-semibold">{formatCurrency(Number(e.amount) || 0)}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className="space-y-2">
+              {pagination.pageItems.map((e) => (
+                <li
+                  key={e.id}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-100 px-3 py-2.5 text-sm"
+                >
+                  <div>
+                    <p className="font-medium text-slate-900">{e.title}</p>
+                    <p className="text-xs text-slate-500">
+                      {e.category_label}
+                      {e.project_title ? (
+                        <>
+                          {" · "}
+                          <Link href={`/projects/${e.project_id}`} className="hover:text-indigo-600 hover:underline">
+                            {e.project_title}
+                          </Link>
+                        </>
+                      ) : null}
+                      {" · "}
+                      {format(new Date(e.expense_date), "dd MMM yyyy")}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">{e.category_label}</Badge>
+                    <span className="font-semibold">{formatCurrency(Number(e.amount) || 0)}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <PaginationBar
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              total={pagination.total}
+              pageSize={pagination.pageSize}
+              from={pagination.from}
+              to={pagination.to}
+              onPageChange={pagination.setPage}
+              onPageSizeChange={pagination.setPageSize}
+              className="mt-3 rounded-xl border border-slate-100"
+            />
+          </>
         )}
       </CardContent>
     </Card>

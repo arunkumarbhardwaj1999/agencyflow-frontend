@@ -10,6 +10,8 @@ import type { Contract, ContractExpiryReminder } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import { useClientPagination } from "@/hooks/use-client-pagination";
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-slate-100 text-slate-700",
@@ -35,18 +37,10 @@ export function ContractsList() {
     queryKey: ["contracts-expiring"],
     queryFn: () => apiFetch<ContractExpiryReminder[]>("/contracts/expiring?days=30"),
   });
+  const pagination = useClientPagination(contracts, { resetKey: clientId });
 
   return (
     <div>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Contracts</h1>
-          <p className="text-sm text-slate-500">
-            Agreements, e-signatures, expiry tracking, and renewals.
-          </p>
-        </div>
-      </div>
-
       {expiring.length > 0 && (
         <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
           <div className="flex items-start gap-2">
@@ -88,7 +82,7 @@ export function ContractsList() {
         </div>
       ) : (
         <div className="space-y-2">
-          {contracts.map((c) => (
+          {pagination.pageItems.map((c) => (
             <Link
               key={c.id}
               href={`/contracts/${c.id}`}
@@ -112,6 +106,17 @@ export function ContractsList() {
               </div>
             </Link>
           ))}
+          <PaginationBar
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            pageSize={pagination.pageSize}
+            from={pagination.from}
+            to={pagination.to}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
+            className="rounded-xl border border-slate-100"
+          />
         </div>
       )}
     </div>

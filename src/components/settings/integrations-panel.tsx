@@ -35,13 +35,6 @@ export function IntegrationsPanel() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Integrations</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Email delivery status for invites, invoices, and account messages
-        </p>
-      </div>
-
       <Card className="max-w-xl">
         <CardHeader className="flex flex-row items-start justify-between gap-3">
           <div>

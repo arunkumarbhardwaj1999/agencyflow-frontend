@@ -64,7 +64,7 @@ export function CinematicLoginForm() {
         <form onSubmit={handleSubmit((d) => mutation.mutate(d))}>
           <AuthField
             label="Username or email"
-            placeholder="you@agency.com"
+            placeholder="Enter your email or username"
             autoComplete="username"
             icon={<AtSign className="h-4 w-4" />}
             error={errors.username?.message}

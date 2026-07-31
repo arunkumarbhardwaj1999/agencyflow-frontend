@@ -18,15 +18,14 @@ import {
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { format, isPast, isToday } from "date-fns";
-import { ListTodo } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { TASK_COLUMNS, type Project, type Task } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
-import { useAuthStore } from "@/stores/auth-store";
+import { Input } from "@/components/ui/input";
+import { KanbanColumnScroll } from "@/components/ui/kanban-column-scroll";
 
 const COLUMN_IDS = new Set<string>(TASK_COLUMNS.map((c) => c.id));
 
-/** Prefer column droppables so empty Done/Review columns accept drops reliably. */
 const columnPreferringCollision: CollisionDetection = (args) => {
   const pointerHits = pointerWithin(args);
   if (pointerHits.length > 0) {
@@ -110,28 +109,32 @@ function Column({
       ref={setNodeRef}
       className={`flex min-h-[420px] w-72 shrink-0 flex-col rounded-2xl border bg-slate-50/80 p-3 ${isOver ? "border-indigo-300 bg-indigo-50/40" : "border-slate-200"}`}
     >
-      <div className="mb-3 flex items-center gap-2 px-1">
+      <div className="mb-3 flex shrink-0 items-center gap-2 px-1">
         <span className={`h-2.5 w-2.5 rounded-full ${COLUMN_DOT[id] ?? "bg-slate-400"}`} />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
         <span className="ml-auto rounded-full bg-white px-2 py-0.5 text-xs font-medium text-slate-500 shadow-sm">
           {tasks.length}
         </span>
       </div>
-      <div className="flex flex-1 flex-col gap-2.5">
-        {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} projectTitle={projectMap.get(task.project_id)} />
-        ))}
-      </div>
+      <KanbanColumnScroll
+        itemCount={tasks.length}
+        resetKey={`${id}:${tasks.map((t) => t.id).join(",")}`}
+      >
+        {(visibleCount) =>
+          tasks.slice(0, visibleCount).map((task) => (
+            <TaskCard key={task.id} task={task} projectTitle={projectMap.get(task.project_id)} />
+          ))
+        }
+      </KanbanColumnScroll>
     </div>
   );
 }
 
 export function TasksKanban() {
-  const user = useAuthStore((s) => s.user);
-  const isEmployee = user?.role === "employee";
   const queryClient = useQueryClient();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [search, setSearch] = useState("");
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ["tasks"],
@@ -147,6 +150,20 @@ export function TasksKanban() {
     [projects],
   );
 
+  const filteredTasks = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return tasks;
+    return tasks.filter((task) => {
+      const projectTitle = projectMap.get(task.project_id) ?? "";
+      return (
+        task.title.toLowerCase().includes(term) ||
+        (task.description ?? "").toLowerCase().includes(term) ||
+        task.priority.toLowerCase().includes(term) ||
+        projectTitle.toLowerCase().includes(term)
+      );
+    });
+  }, [tasks, search, projectMap]);
+
   const byStatus = useMemo(() => {
     const map: Record<string, Task[]> = {
       todo: [],
@@ -154,11 +171,11 @@ export function TasksKanban() {
       review: [],
       done: [],
     };
-    for (const task of tasks) {
+    for (const task of filteredTasks) {
       (map[task.status] ?? map.todo).push(task);
     }
     return map;
-  }, [tasks]);
+  }, [filteredTasks]);
 
   const updateStatus = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
@@ -206,16 +223,12 @@ export function TasksKanban() {
 
   return (
     <div>
-      <div className="mb-5">
-        <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-slate-900">
-          <ListTodo className="h-6 w-6 text-indigo-600" />
-          {isEmployee ? "My Tasks" : "Tasks"}
-        </h1>
-        <p className="text-sm text-slate-500">
-          {isEmployee
-            ? "Drag cards across To Do → Done. Only your assigned work."
-            : "Team board — drag to update status, open a card for details."}
-        </p>
+      <div className="mb-4 max-w-md">
+        <Input
+          placeholder="Search tasks by title, project, priority…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
 
       {isLoading ? (

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { AtSign, KeyRound, Mail, Pencil, Phone, Plug, Shield, User } from "lucide-react";
+import { AtSign, KeyRound, Mail, MapPin, Pencil, Phone, Plug, Shield, User } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { usePasswordChange } from "@/components/auth/password-change-context";
 import { apiFetch } from "@/lib/api";
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Modal } from "@/components/ui/modal";
 import { HrPanel } from "@/components/hr/hr-panel";
 
@@ -47,12 +48,14 @@ export function ProfilePanel() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
 
   useEffect(() => {
     if (!user || !editing) return;
     setFirstName(user.first_name);
     setLastName(user.last_name ?? "");
     setPhone(user.phone ?? "");
+    setAddress(user.address ?? "");
   }, [user, editing]);
 
   const saveMutation = useMutation({
@@ -63,6 +66,7 @@ export function ProfilePanel() {
           first_name: firstName.trim(),
           last_name: lastName.trim() || null,
           phone: phone.trim() || null,
+          address: address.trim() || null,
         }),
       }),
     onSuccess: (updated) => {
@@ -77,11 +81,7 @@ export function ProfilePanel() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Profile</h1>
-          <p className="mt-1 text-sm text-slate-500">Your account details and security settings</p>
-        </div>
+      <div className="flex flex-wrap items-center justify-end gap-3">
         <Button type="button" variant="outline" onClick={() => setEditing(true)}>
           <Pencil className="mr-2 h-4 w-4" />
           Edit profile
@@ -103,6 +103,7 @@ export function ProfilePanel() {
           <InfoRow icon={AtSign} label="Username" value={user.username} />
           <InfoRow icon={Mail} label="Email" value={user.email} />
           <InfoRow icon={Phone} label="Phone" value={user.phone || "Not added"} />
+          <InfoRow icon={MapPin} label="Address" value={user.address || "Not added"} />
           <InfoRow icon={Shield} label="Role" value={user.role} />
           <InfoRow
             icon={Shield}
@@ -152,7 +153,7 @@ export function ProfilePanel() {
         open={editing}
         onClose={() => !saveMutation.isPending && setEditing(false)}
         title="Edit profile"
-        description="Update your name and phone. Email and username stay the same."
+        description="Update your name, phone, and address. Email and username stay the same."
         footer={
           <>
             <Button
@@ -192,6 +193,18 @@ export function ProfilePanel() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
             />
+          </div>
+          <div>
+            <Label>Address</Label>
+            <Textarea
+              rows={3}
+              placeholder="Street, city, state, PIN"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
+            <p className="mt-1 text-xs text-slate-500">
+              Useful for invoices and contact details.
+            </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>

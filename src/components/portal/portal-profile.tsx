@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { AtSign, Mail, Pencil, Phone, Shield, User } from "lucide-react";
+import { AtSign, Mail, MapPin, Pencil, Phone, Shield, User } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { usePasswordChange } from "@/components/auth/password-change-context";
 import { apiFetch } from "@/lib/api";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Modal } from "@/components/ui/modal";
 
 function initials(first: string, last?: string | null) {
@@ -25,6 +26,7 @@ export function PortalProfile() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
 
   const { data: me } = useQuery({
     queryKey: ["portal-me"],
@@ -36,6 +38,7 @@ export function PortalProfile() {
     setFirstName(user.first_name);
     setLastName(user.last_name ?? "");
     setPhone(user.phone ?? "");
+    setAddress(user.address ?? "");
   }, [user, editing]);
 
   const saveMutation = useMutation({
@@ -46,6 +49,7 @@ export function PortalProfile() {
           first_name: firstName.trim(),
           last_name: lastName.trim() || null,
           phone: phone.trim() || null,
+          address: address.trim() || null,
         }),
       }),
     onSuccess: (updated) => {
@@ -87,6 +91,7 @@ export function PortalProfile() {
           <Info icon={AtSign} label="Username" value={user.username} />
           <Info icon={Mail} label="Email" value={user.email} />
           <Info icon={Phone} label="Phone" value={user.phone || "Not added"} />
+          <Info icon={MapPin} label="Address" value={user.address || "Not added"} />
           <Info icon={Shield} label="Role" value="Client" />
         </CardContent>
       </Card>
@@ -107,7 +112,7 @@ export function PortalProfile() {
         open={editing}
         onClose={() => !saveMutation.isPending && setEditing(false)}
         title="Edit profile"
-        description="Update your name and phone. Email and username stay the same."
+        description="Update your name, phone, and address."
         footer={
           <>
             <Button
@@ -146,6 +151,15 @@ export function PortalProfile() {
               placeholder="e.g. 9876543210"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>Address</Label>
+            <Textarea
+              rows={3}
+              placeholder="Street, city, state, PIN"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
             />
           </div>
           {saveMutation.isError && (

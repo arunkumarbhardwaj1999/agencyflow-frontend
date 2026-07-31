@@ -30,6 +30,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { FEATURES } from "@/lib/feature-flags";
 import { useAuthStore } from "@/stores/auth-store";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import { useClientPagination } from "@/hooks/use-client-pagination";
 
 function dayLabel(iso: string) {
   const date = new Date(iso);
@@ -128,7 +130,7 @@ export function InboxView() {
     },
   });
 
-  const grouped = useMemo(() => {
+  const filteredItems = useMemo(() => {
     let items = inbox?.items ?? [];
     if (mentionsOnly && user) {
       const needles = [`@${user.username}`, `@${user.first_name}`]
@@ -139,15 +141,23 @@ export function InboxView() {
         return needles.some((n) => hay.includes(n));
       });
     }
+    return items;
+  }, [inbox?.items, mentionsOnly, user]);
+
+  const pagination = useClientPagination(filteredItems, {
+    resetKey: `${channel}|${unreadOnly}|${dateFilter}|${mentionsOnly}|${search}`,
+  });
+
+  const grouped = useMemo(() => {
     const map = new Map<string, InboxItem[]>();
-    for (const item of items) {
+    for (const item of pagination.pageItems) {
       const key = dayLabel(item.created_at);
       const list = map.get(key) ?? [];
       list.push(item);
       map.set(key, list);
     }
     return Array.from(map.entries());
-  }, [inbox?.items, mentionsOnly, user]);
+  }, [pagination.pageItems]);
 
   function handleItemClick(item: InboxItem) {
     if (item.read_status === "unread") {
@@ -163,17 +173,6 @@ export function InboxView() {
 
   return (
     <div>
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          {isEmployee ? "Messages" : "Communication Center"}
-        </h1>
-        <p className="text-sm text-slate-500">
-          {isEmployee
-            ? "Internal comments, mentions, and notifications"
-            : "Emails, messages, calls, and team notes — one unified inbox"}
-        </p>
-      </div>
-
       <InboxSummaryBanner summary={summary} isLoading={summaryLoading} />
 
       <div className="flex flex-col gap-4 lg:flex-row">
@@ -347,6 +346,17 @@ export function InboxView() {
                     </div>
                   </div>
                 ))}
+                <PaginationBar
+                  page={pagination.page}
+                  totalPages={pagination.totalPages}
+                  total={pagination.total}
+                  pageSize={pagination.pageSize}
+                  from={pagination.from}
+                  to={pagination.to}
+                  onPageChange={pagination.setPage}
+                  onPageSizeChange={pagination.setPageSize}
+                  className="rounded-xl border border-slate-100"
+                />
               </div>
             )}
           </div>

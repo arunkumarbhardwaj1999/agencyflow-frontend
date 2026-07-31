@@ -6,6 +6,8 @@ import { Download, FileText, Trash2, Upload } from "lucide-react";
 import { apiBlob, apiFetch, apiUpload } from "@/lib/api";
 import type { DocumentMeta } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import { useClientPagination } from "@/hooks/use-client-pagination";
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -23,6 +25,7 @@ export function ProjectDocuments({ projectId }: { projectId: string }) {
     queryKey,
     queryFn: () => apiFetch<DocumentMeta[]>(`/files/documents?project_id=${projectId}`),
   });
+  const pagination = useClientPagination(docs);
 
   const uploadMutation = useMutation({
     mutationFn: (file: File) => {
@@ -87,7 +90,7 @@ export function ProjectDocuments({ projectId }: { projectId: string }) {
       )}
 
       <ul className="space-y-2">
-        {docs.map((doc) => (
+        {pagination.pageItems.map((doc) => (
           <li
             key={doc.id}
             className="flex items-center justify-between gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm"
@@ -120,6 +123,17 @@ export function ProjectDocuments({ projectId }: { projectId: string }) {
           </li>
         ))}
       </ul>
+      <PaginationBar
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        total={pagination.total}
+        pageSize={pagination.pageSize}
+        from={pagination.from}
+        to={pagination.to}
+        onPageChange={pagination.setPage}
+        onPageSizeChange={pagination.setPageSize}
+        className="mt-2 rounded-lg border border-slate-100"
+      />
     </div>
   );
 }

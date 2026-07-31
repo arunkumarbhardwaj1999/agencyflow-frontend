@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { KanbanColumnScroll } from "@/components/ui/kanban-column-scroll";
 import { LeadFormDialog } from "./lead-form-dialog";
 import { AIResultModal } from "@/components/ai/ai-result-modal";
 import { FEATURES } from "@/lib/feature-flags";
@@ -181,26 +182,31 @@ function Column({
       ref={setNodeRef}
       className={`flex min-h-[440px] w-72 shrink-0 flex-col rounded-2xl border p-3 transition-colors ${isOver ? "border-indigo-300 bg-indigo-50/60 ring-2 ring-indigo-300" : "border-slate-200 bg-slate-50/70"}`}
     >
-      <div className="mb-3 flex items-center justify-between px-1">
+      <div className="mb-3 flex shrink-0 items-center justify-between px-1">
         <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-700">
           <span className={`h-2.5 w-2.5 rounded-full ${STAGE_DOT[status] ?? "bg-slate-400"}`} />
           {title}
         </h3>
         <Badge variant="secondary">{leads.length}</Badge>
       </div>
-      <div className="flex flex-1 flex-col gap-2">
-        {leads.map((lead) => (
-          <LeadCard
-            key={lead.id}
-            lead={lead}
-            memberName={lead.assigned_user_id ? memberMap.get(lead.assigned_user_id) : undefined}
-            onConvert={status === "won" && onConvertLead ? () => onConvertLead(lead) : undefined}
-            onEdit={() => onEditLead(lead)}
-            onDelete={() => onDeleteLead(lead)}
-            onAI={() => onAILead(lead)}
-          />
-        ))}
-      </div>
+      <KanbanColumnScroll
+        itemCount={leads.length}
+        resetKey={`${status}:${leads.map((l) => l.id).join(",")}`}
+      >
+        {(visibleCount) =>
+          leads.slice(0, visibleCount).map((lead) => (
+            <LeadCard
+              key={lead.id}
+              lead={lead}
+              memberName={lead.assigned_user_id ? memberMap.get(lead.assigned_user_id) : undefined}
+              onConvert={status === "won" && onConvertLead ? () => onConvertLead(lead) : undefined}
+              onEdit={() => onEditLead(lead)}
+              onDelete={() => onDeleteLead(lead)}
+              onAI={() => onAILead(lead)}
+            />
+          ))
+        }
+      </KanbanColumnScroll>
     </div>
   );
 }
@@ -300,24 +306,18 @@ export function LeadsKanban() {
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="app-page-title">Leads</h1>
-          <p className="app-page-subtitle">Pipeline board with draggable stage cards</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {FEATURES.ai && (
-            <Button variant="outline" onClick={() => setFollowupsOpen(true)} className="gap-2">
-              <Sparkles className="h-4 w-4" />
-              <span className="hidden sm:inline">AI follow-ups</span>
-              <span className="sm:hidden">AI</span>
-            </Button>
-          )}
-          <Button onClick={() => { setEditingLead(null); setFormOpen(true); }} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add lead
+      <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
+        {FEATURES.ai && (
+          <Button variant="outline" onClick={() => setFollowupsOpen(true)} className="gap-2">
+            <Sparkles className="h-4 w-4" />
+            <span className="hidden sm:inline">AI follow-ups</span>
+            <span className="sm:hidden">AI</span>
           </Button>
-        </div>
+        )}
+        <Button onClick={() => { setEditingLead(null); setFormOpen(true); }} className="gap-2">
+          <Plus className="h-4 w-4" />
+          Add lead
+        </Button>
       </div>
 
       <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -348,110 +348,111 @@ export function LeadsKanban() {
         </div>
       </div>
 
+      <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
+          <Input
+            className="w-full lg:max-w-xs"
+            placeholder="Search name, company, email…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <Select
+            className="w-full lg:w-48"
+            value={assigneeFilter}
+            onChange={(e) => setAssigneeFilter(e.target.value)}
+          >
+            <option value="">All assignees</option>
+            {(members as Member[]).map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </Select>
+          <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm whitespace-nowrap">
+            <input
+              type="checkbox"
+              checked={onlyDueFollowups}
+              onChange={(e) => setOnlyDueFollowups(e.target.checked)}
+            />
+            Due follow-ups only
+          </label>
+          <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
+            {LEAD_COLUMNS.map((col) => {
+              const active = activeStages.includes(col.id);
+              const count = filteredLeads.filter((lead) => lead.status === col.id).length;
+              return (
+                <button
+                  key={col.id}
+                  type="button"
+                  onClick={() => toggleStage(col.id)}
+                  className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                    active
+                      ? "border-indigo-200 bg-indigo-50 text-indigo-700"
+                      : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
+                  }`}
+                >
+                  {col.title}
+                  <Badge variant="secondary">{count}</Badge>
+                </button>
+              );
+            })}
+            {(search || assigneeFilter || onlyDueFollowups || activeStages.length !== LEAD_COLUMNS.length) && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearch("");
+                  setAssigneeFilter("");
+                  setOnlyDueFollowups(false);
+                  setActiveStages(LEAD_COLUMNS.map((col) => col.id));
+                }}
+              >
+                Reset
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
       {(updateMutation.isError || convertMutation.isError || deleteMutation.isError) && (
         <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
           {((updateMutation.error ?? convertMutation.error ?? deleteMutation.error) as Error).message}
         </p>
       )}
 
-      <div className="flex flex-col gap-4 lg:flex-row">
-        <aside className="w-full shrink-0 rounded-2xl border border-slate-200 bg-white p-4 lg:w-[280px]">
-          <p className="text-sm font-semibold text-slate-800">Filter Leads</p>
-          <div className="mt-3 space-y-3">
-            <Input
-              placeholder="Search name, company, email…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <Select value={assigneeFilter} onChange={(e) => setAssigneeFilter(e.target.value)}>
-              <option value="">All assignees</option>
-              {(members as Member[]).map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
-            </Select>
-            <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm">
-              <input
-                type="checkbox"
-                checked={onlyDueFollowups}
-                onChange={(e) => setOnlyDueFollowups(e.target.checked)}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100/40 p-3">
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {LEAD_COLUMNS.filter((col) => activeStages.includes(col.id)).map((col) => (
+              <Column
+                key={col.id}
+                status={col.id}
+                title={col.title}
+                leads={filteredLeads.filter((l) => l.status === col.id)}
+                memberMap={memberMap}
+                onConvertLead={(lead) => convertMutation.mutate(lead.id)}
+                onEditLead={(lead) => { setEditingLead(lead); setFormOpen(true); }}
+                onDeleteLead={(lead) => {
+                  if (confirm(`Delete lead "${lead.name}"?`)) deleteMutation.mutate(lead.id);
+                }}
+                onAILead={(lead) => setAiLeadId(lead.id)}
               />
-              Show only due follow-ups
-            </label>
+            ))}
           </div>
-
-          <div className="mt-4 border-t border-slate-100 pt-4">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Stage filter</p>
-            <div className="space-y-2">
-              {LEAD_COLUMNS.map((col) => (
-                <label key={col.id} className="flex cursor-pointer items-center justify-between rounded-md px-1 py-1 text-sm text-slate-700 hover:bg-slate-50">
-                  <span className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={activeStages.includes(col.id)}
-                      onChange={() => toggleStage(col.id)}
-                    />
-                    {col.title}
-                  </span>
-                  <Badge variant="secondary">
-                    {filteredLeads.filter((lead) => lead.status === col.id).length}
-                  </Badge>
-                </label>
-              ))}
+        </div>
+        <DragOverlay>
+          {activeLead ? (
+            <div className="w-64 rounded-lg border bg-white p-3 shadow-lg">
+              <p className="font-medium">{activeLead.name}</p>
             </div>
-          </div>
-
-          {(search || assigneeFilter || onlyDueFollowups || activeStages.length !== LEAD_COLUMNS.length) && (
-            <Button
-              variant="outline"
-              className="mt-4 w-full"
-              onClick={() => {
-                setSearch("");
-                setAssigneeFilter("");
-                setOnlyDueFollowups(false);
-                setActiveStages(LEAD_COLUMNS.map((col) => col.id));
-              }}
-            >
-              Reset filters
-            </Button>
-          )}
-        </aside>
-
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        >
-          <div className="flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100/40 p-3">
-            <div className="flex gap-4 overflow-x-auto pb-2">
-              {LEAD_COLUMNS.filter((col) => activeStages.includes(col.id)).map((col) => (
-                <Column
-                  key={col.id}
-                  status={col.id}
-                  title={col.title}
-                  leads={filteredLeads.filter((l) => l.status === col.id)}
-                  memberMap={memberMap}
-                  onConvertLead={(lead) => convertMutation.mutate(lead.id)}
-                  onEditLead={(lead) => { setEditingLead(lead); setFormOpen(true); }}
-                  onDeleteLead={(lead) => {
-                    if (confirm(`Delete lead "${lead.name}"?`)) deleteMutation.mutate(lead.id);
-                  }}
-                  onAILead={(lead) => setAiLeadId(lead.id)}
-                />
-              ))}
-            </div>
-          </div>
-          <DragOverlay>
-            {activeLead ? (
-              <div className="w-64 rounded-lg border bg-white p-3 shadow-lg">
-                <p className="font-medium">{activeLead.name}</p>
-              </div>
-            ) : null}
-          </DragOverlay>
-        </DndContext>
-      </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
 
       <LeadFormDialog
         open={formOpen}

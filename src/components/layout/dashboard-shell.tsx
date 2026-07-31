@@ -30,6 +30,8 @@ const pageTitles: Record<string, string> = {
   "/finance": "Finance",
   "/hr": "HR",
   "/automations": "Automation",
+  "/proposals": "Proposals",
+  "/contracts": "Contracts",
   "/settings": "Settings",
   "/settings/integrations": "Integrations",
   "/settings/profile": "Profile",
@@ -41,6 +43,36 @@ const pageTitles: Record<string, string> = {
   "/portal/approvals": "Approvals",
   "/portal/messages": "Messages",
   "/portal/profile": "Profile",
+};
+
+const pageSubtitles: Record<string, string> = {
+  "/dashboard": "Overview of your agency workspace",
+  "/team": "Manage members and roles",
+  "/leads": "Pipeline board with draggable stage cards",
+  "/deals": "Sales opportunities — drag cards across stages",
+  "/clients": "Accounts and account managers",
+  "/projects": "Delivery work across clients",
+  "/tasks": "Kanban board for team work",
+  "/time": "Log and review tracked hours",
+  "/documents": "Files shared across the workspace",
+  "/inbox": "Messages and conversation threads",
+  "/calendar": "Schedule and upcoming events",
+  "/finance": "Invoices, payments, and cashflow",
+  "/hr": "People, attendance, and payroll tools",
+  "/automations": "Triggers and automated actions",
+  "/proposals": "Create, preview, and send branded proposals",
+  "/contracts": "Agreements, e-signatures, and renewals",
+  "/settings": "Workspace preferences",
+  "/settings/integrations": "Connect email and other services",
+  "/settings/profile": "Your account details",
+  "/portal": "Your client workspace",
+  "/portal/projects": "Projects shared with you",
+  "/portal/tasks": "Tasks assigned to you",
+  "/portal/files": "Shared files",
+  "/portal/invoices": "Your invoices",
+  "/portal/approvals": "Items waiting for your approval",
+  "/portal/messages": "Messages with the agency",
+  "/portal/profile": "Your profile",
 };
 
 const EMPLOYEE_PREFIXES = [
@@ -86,6 +118,13 @@ function resolveTitle(pathname: string) {
   return pageTitles[pathname] ?? "AgencyFlow";
 }
 
+function resolveSubtitle(pathname: string) {
+  if (pathname.startsWith("/leads/") || pathname.startsWith("/deals/") || pathname.startsWith("/clients/") || pathname.startsWith("/tasks/") || pathname.startsWith("/projects/") || pathname.startsWith("/portal/projects/")) {
+    return undefined;
+  }
+  return pageSubtitles[pathname];
+}
+
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -119,6 +158,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   }, [data, isError, router, setUser, pathname]);
 
   const title = resolveTitle(pathname);
+  const subtitle = resolveSubtitle(pathname);
 
   if (isLoading || !data) {
     return (
@@ -133,7 +173,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <RealtimeProvider>
-      <ShellInner title={title} role={data.role}>
+      <ShellInner title={title} subtitle={subtitle} role={data.role}>
         {children}
       </ShellInner>
     </RealtimeProvider>
@@ -142,10 +182,12 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
 function ShellInner({
   title,
+  subtitle,
   role,
   children,
 }: {
   title: string;
+  subtitle?: string;
   role: string;
   children: React.ReactNode;
 }) {
@@ -189,6 +231,7 @@ function ShellInner({
           <div className="relative w-full px-4 py-4 sm:px-6 sm:py-5 lg:px-8 xl:px-10">
             <DashboardHeader
               title={title}
+              subtitle={subtitle}
               showNewLead={showNewLead}
               onMenuClick={() => setNavOpen(true)}
             />
