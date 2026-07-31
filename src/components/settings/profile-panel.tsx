@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AtSign, KeyRound, Mail, MapPin, Pencil, Phone, Plug, Shield, User } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { usePasswordChange } from "@/components/auth/password-change-context";
@@ -43,6 +43,7 @@ function InfoRow({
 export function ProfilePanel() {
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
+  const queryClient = useQueryClient();
   const { openPasswordChange } = usePasswordChange();
   const [editing, setEditing] = useState(false);
   const [firstName, setFirstName] = useState("");
@@ -70,7 +71,14 @@ export function ProfilePanel() {
         }),
       }),
     onSuccess: (updated) => {
-      setUser(updated);
+      const merged: AuthUser = {
+        ...updated,
+        address: Object.prototype.hasOwnProperty.call(updated, "address")
+          ? updated.address
+          : address.trim() || null,
+      };
+      setUser(merged);
+      queryClient.setQueryData(["me"], merged);
       setEditing(false);
     },
   });

@@ -85,6 +85,8 @@ export function TeamPanel() {
   const [resendUserId, setResendUserId] = useState<string | null>(null);
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
   const [search, setSearch] = useState("");
+  const [groupSearch, setGroupSearch] = useState("");
+  const [activateSearch, setActivateSearch] = useState("");
   const { register, handleSubmit, reset, formState: { errors } } = useForm<z.infer<typeof userSchema>>({
     resolver: zodResolver(userSchema),
     defaultValues: { role: "employee" },
@@ -118,6 +120,33 @@ export function TeamPanel() {
     queryFn: () => apiFetch<TeamGroup[]>("/users/groups"),
   });
 
+  const filteredGroups = useMemo(() => {
+    const term = groupSearch.trim().toLowerCase();
+    if (!term) return groups;
+    return groups.filter((g) => {
+      if (g.name.toLowerCase().includes(term)) return true;
+      return g.members.some(
+        (m) =>
+          m.name.toLowerCase().includes(term) ||
+          m.email.toLowerCase().includes(term),
+      );
+    });
+  }, [groups, groupSearch]);
+
+  const filteredActivateStaff = useMemo(() => {
+    const term = activateSearch.trim().toLowerCase();
+    if (!term) return staff;
+    return staff.filter((u) => {
+      const fullName = `${u.first_name} ${u.last_name ?? ""}`.toLowerCase();
+      return (
+        fullName.includes(term) ||
+        u.email.toLowerCase().includes(term) ||
+        u.role.toLowerCase().includes(term) ||
+        roleLabel(u.role).toLowerCase().includes(term) ||
+        profileLabel(u.role).toLowerCase().includes(term)
+      );
+    });
+  }, [staff, activateSearch]);
   const activeCount = staff.filter((u) => u.is_active && u.is_verified).length;
   const pendingCount = staff.filter((u) => u.is_active && !u.is_verified).length;
 
@@ -203,7 +232,10 @@ export function TeamPanel() {
   }
   const pendingInvites = useMemo(() => staff.filter((u) => !u.is_verified), [staff]);
   const rosterPagination = useClientPagination(filteredStaff, { resetKey: search });
-  const activatePagination = useClientPagination(staff);
+  const groupsPagination = useClientPagination(filteredGroups, { resetKey: groupSearch });
+  const activatePagination = useClientPagination(filteredActivateStaff, {
+    resetKey: activateSearch,
+  });
 
   return (
     <div className="space-y-6">
@@ -455,17 +487,26 @@ export function TeamPanel() {
       {tab === "groups" && (
         <Reveal>
           <Card>
-            <CardHeader className="flex-row items-center justify-between">
+            <CardHeader className="flex-row flex-wrap items-center justify-between gap-3 space-y-0">
               <CardTitle className="text-base">Groups</CardTitle>
               <Button onClick={() => setShowGroupModal(true)} className="gap-2">
                 <Plus className="h-4 w-4" /> Create Group
               </Button>
             </CardHeader>
             <CardContent className="space-y-4">
-              {groups.length === 0 ? (
-                <p className="text-sm text-slate-500">No groups created yet.</p>
+              <Input
+                placeholder="Search groups by name or member…"
+                value={groupSearch}
+                onChange={(e) => setGroupSearch(e.target.value)}
+              />
+              {filteredGroups.length === 0 ? (
+                <p className="text-sm text-slate-500">
+                  {groups.length === 0
+                    ? "No groups created yet."
+                    : "No groups match your search."}
+                </p>
               ) : (
-                groups.map((g) => (
+                groupsPagination.pageItems.map((g) => (
                   <div key={g.id} className="rounded-lg border border-slate-200 p-4">
                     <div className="flex items-center justify-between">
                       <p className="font-semibold text-slate-900">{g.name}</p>
@@ -474,14 +515,29 @@ export function TeamPanel() {
                     <div className="mt-3 space-y-2">
                       {g.members.map((m) => (
                         <div key={m.id} className="flex items-center justify-between text-sm">
-                          <p className="text-slate-700">{m.name} <span className="text-slate-500">({m.email})</span></p>
-                          <Badge variant={m.status === "Active" ? "success" : "warning"}>{m.status}</Badge>
+                          <p className="text-slate-700">
+                            {m.name} <span className="text-slate-500">({m.email})</span>
+                          </p>
+                          <Badge variant={m.status === "Active" ? "success" : "warning"}>
+                            {m.status}
+                          </Badge>
                         </div>
                       ))}
                     </div>
                   </div>
                 ))
               )}
+              <PaginationBar
+                page={groupsPagination.page}
+                totalPages={groupsPagination.totalPages}
+                total={groupsPagination.total}
+                pageSize={groupsPagination.pageSize}
+                from={groupsPagination.from}
+                to={groupsPagination.to}
+                onPageChange={groupsPagination.setPage}
+                onPageSizeChange={groupsPagination.setPageSize}
+                className="rounded-xl border border-slate-100"
+              />
             </CardContent>
           </Card>
         </Reveal>
@@ -490,73 +546,96 @@ export function TeamPanel() {
       {tab === "activate" && (
         <Reveal>
           <Card className="overflow-hidden">
-            <CardHeader className="space-y-1">
-              <CardTitle className="text-3xl font-semibold text-slate-900">Activate Users</CardTitle>
-              <p className="text-sm text-slate-600">
-                This page allows you to activate and deactivate users.
-                {pendingInvites.length > 0 ? ` Pending invites: ${pendingInvites.length}.` : ""}
-              </p>
+            <CardHeader className="space-y-3">
+              <div className="space-y-1">
+                <CardTitle className="text-3xl font-semibold text-slate-900">Activate Users</CardTitle>
+                <p className="text-sm text-slate-600">
+                  This page allows you to activate and deactivate users.
+                  {pendingInvites.length > 0 ? ` Pending invites: ${pendingInvites.length}.` : ""}
+                </p>
+              </div>
+              <Input
+                className="max-w-md"
+                placeholder="Search by name, email, role…"
+                value={activateSearch}
+                onChange={(e) => setActivateSearch(e.target.value)}
+              />
             </CardHeader>
             <CardContent className="px-0 pb-0">
-              <Table>
-                <THead>
-                  <TR className="hover:bg-transparent">
-                    <TH>Full Name</TH>
-                    <TH>Email Address</TH>
-                    <TH>Role</TH>
-                    <TH>Profile</TH>
-                    <TH className="text-right">User Status</TH>
-                  </TR>
-                </THead>
-                <TBody>
-                  {activatePagination.pageItems.map((u) => (
-                    <TR key={u.id}>
-                      <TD>{u.first_name} {u.last_name ?? ""}</TD>
-                      <TD className="text-indigo-700">{u.email}</TD>
-                      <TD>{roleLabel(u.role)}</TD>
-                      <TD>{profileLabel(u.role)}</TD>
-                      <TD>
-                        <div className="flex items-center justify-end gap-3">
-                          {!u.is_verified && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              disabled={resendMutation.isPending && resendUserId === u.id}
-                              onClick={() => {
-                                setResendUserId(u.id);
-                                resendMutation.mutate(u.id);
-                              }}
-                            >
-                              {resendMutation.isPending && resendUserId === u.id ? "Sending..." : "Resend"}
-                            </Button>
-                          )}
-                          <button
-                            type="button"
-                            aria-label={u.is_active ? "Deactivate user" : "Activate user"}
-                            disabled={u.role === "owner"}
-                            onClick={() => updateMutation.mutate({ id: u.id, patch: { is_active: !u.is_active } })}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${u.is_active ? "bg-emerald-500" : "bg-slate-300"} ${u.role === "owner" ? "cursor-not-allowed opacity-60" : ""}`}
-                          >
-                            <span
-                              className={`inline-block h-5 w-5 transform rounded-full bg-white transition ${u.is_active ? "translate-x-5" : "translate-x-1"}`}
-                            />
-                          </button>
-                        </div>
-                      </TD>
-                    </TR>
-                  ))}
-                </TBody>
-              </Table>
-              <PaginationBar
-                page={activatePagination.page}
-                totalPages={activatePagination.totalPages}
-                total={activatePagination.total}
-                pageSize={activatePagination.pageSize}
-                from={activatePagination.from}
-                to={activatePagination.to}
-                onPageChange={activatePagination.setPage}
-                onPageSizeChange={activatePagination.setPageSize}
-              />
+              {filteredActivateStaff.length === 0 ? (
+                <p className="px-6 pb-6 text-sm text-slate-500">No users match your search.</p>
+              ) : (
+                <>
+                  <Table>
+                    <THead>
+                      <TR className="hover:bg-transparent">
+                        <TH>Full Name</TH>
+                        <TH>Email Address</TH>
+                        <TH>Role</TH>
+                        <TH>Profile</TH>
+                        <TH className="text-right">User Status</TH>
+                      </TR>
+                    </THead>
+                    <TBody>
+                      {activatePagination.pageItems.map((u) => (
+                        <TR key={u.id}>
+                          <TD>
+                            {u.first_name} {u.last_name ?? ""}
+                          </TD>
+                          <TD className="text-indigo-700">{u.email}</TD>
+                          <TD>{roleLabel(u.role)}</TD>
+                          <TD>{profileLabel(u.role)}</TD>
+                          <TD>
+                            <div className="flex items-center justify-end gap-3">
+                              {!u.is_verified && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled={resendMutation.isPending && resendUserId === u.id}
+                                  onClick={() => {
+                                    setResendUserId(u.id);
+                                    resendMutation.mutate(u.id);
+                                  }}
+                                >
+                                  {resendMutation.isPending && resendUserId === u.id
+                                    ? "Sending..."
+                                    : "Resend"}
+                                </Button>
+                              )}
+                              <button
+                                type="button"
+                                aria-label={u.is_active ? "Deactivate user" : "Activate user"}
+                                disabled={u.role === "owner"}
+                                onClick={() =>
+                                  updateMutation.mutate({
+                                    id: u.id,
+                                    patch: { is_active: !u.is_active },
+                                  })
+                                }
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${u.is_active ? "bg-emerald-500" : "bg-slate-300"} ${u.role === "owner" ? "cursor-not-allowed opacity-60" : ""}`}
+                              >
+                                <span
+                                  className={`inline-block h-5 w-5 transform rounded-full bg-white transition ${u.is_active ? "translate-x-5" : "translate-x-1"}`}
+                                />
+                              </button>
+                            </div>
+                          </TD>
+                        </TR>
+                      ))}
+                    </TBody>
+                  </Table>
+                  <PaginationBar
+                    page={activatePagination.page}
+                    totalPages={activatePagination.totalPages}
+                    total={activatePagination.total}
+                    pageSize={activatePagination.pageSize}
+                    from={activatePagination.from}
+                    to={activatePagination.to}
+                    onPageChange={activatePagination.setPage}
+                    onPageSizeChange={activatePagination.setPageSize}
+                  />
+                </>
+              )}
             </CardContent>
           </Card>
         </Reveal>

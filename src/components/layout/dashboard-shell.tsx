@@ -29,6 +29,8 @@ const pageTitles: Record<string, string> = {
   "/calendar": "Calendar",
   "/finance": "Finance",
   "/hr": "HR",
+  "/hr/leaves": "Leave requests",
+  "/hr/holidays": "Holiday calendar",
   "/automations": "Automation",
   "/proposals": "Proposals",
   "/contracts": "Contracts",
@@ -59,6 +61,8 @@ const pageSubtitles: Record<string, string> = {
   "/calendar": "Schedule and upcoming events",
   "/finance": "Invoices, payments, and cashflow",
   "/hr": "People, attendance, and payroll tools",
+  "/hr/leaves": "Search, filter, and review leave requests",
+  "/hr/holidays": "Company holidays with search and full list",
   "/automations": "Triggers and automated actions",
   "/proposals": "Create, preview, and send branded proposals",
   "/contracts": "Agreements, e-signatures, and renewals",
@@ -173,7 +177,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <RealtimeProvider>
-      <ShellInner title={title} subtitle={subtitle} role={data.role}>
+      <ShellInner title={title} subtitle={subtitle}>
         {children}
       </ShellInner>
     </RealtimeProvider>
@@ -183,19 +187,15 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 function ShellInner({
   title,
   subtitle,
-  role,
   children,
 }: {
   title: string;
   subtitle?: string;
-  role: string;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const { events } = useRealtime();
   const [navOpen, setNavOpen] = useState(false);
-  const showNewLead =
-    (title === "Dashboard" || title === "Leads") && (role === "owner" || role === "manager");
 
   useEffect(() => {
     setNavOpen(false);
@@ -232,7 +232,6 @@ function ShellInner({
             <DashboardHeader
               title={title}
               subtitle={subtitle}
-              showNewLead={showNewLead}
               onMenuClick={() => setNavOpen(true)}
             />
             <PasswordUpdateBanner />

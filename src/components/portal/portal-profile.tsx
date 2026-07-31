@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AtSign, Mail, MapPin, Pencil, Phone, Shield, User } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { usePasswordChange } from "@/components/auth/password-change-context";
@@ -21,6 +21,7 @@ function initials(first: string, last?: string | null) {
 export function PortalProfile() {
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
+  const queryClient = useQueryClient();
   const { openPasswordChange } = usePasswordChange();
   const [editing, setEditing] = useState(false);
   const [firstName, setFirstName] = useState("");
@@ -53,7 +54,14 @@ export function PortalProfile() {
         }),
       }),
     onSuccess: (updated) => {
-      setUser(updated);
+      const merged: AuthUser = {
+        ...updated,
+        address: Object.prototype.hasOwnProperty.call(updated, "address")
+          ? updated.address
+          : address.trim() || null,
+      };
+      setUser(merged);
+      queryClient.setQueryData(["me"], merged);
       setEditing(false);
     },
   });

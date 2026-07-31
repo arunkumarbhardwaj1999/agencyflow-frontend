@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { CalendarDays, LogIn, LogOut, Plus, UserPlus, UserRound } from "lucide-react";
-import { useState } from "react";
+import { CalendarDays, ChevronRight, LogIn, LogOut, Plus, UserPlus, UserRound } from "lucide-react";
+import { useMemo, useState } from "react";
 import { apiFetch } from "@/lib/api";
 import type { AttendanceLog, CompanyHoliday, HrEmployee, LeaveRequest } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
@@ -18,6 +18,8 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { PaginationBar } from "@/components/ui/pagination-bar";
 import { useClientPagination } from "@/hooks/use-client-pagination";
+
+const PREVIEW_LIMIT = 5;
 
 function timeLabel(iso: string | null) {
   if (!iso) return "—";
@@ -62,8 +64,8 @@ export function HrPanel({ selfOnly = false }: { selfOnly?: boolean }) {
   });
 
   const employeesPagination = useClientPagination(employees);
-  const leavesPagination = useClientPagination(leaves);
-  const holidaysPagination = useClientPagination(holidays);
+  const leavePreview = useMemo(() => leaves.slice(0, PREVIEW_LIMIT), [leaves]);
+  const holidayPreview = useMemo(() => holidays.slice(0, PREVIEW_LIMIT), [holidays]);
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["hr-employees"] });
@@ -285,7 +287,17 @@ export function HrPanel({ selfOnly = false }: { selfOnly?: boolean }) {
 
         <div className={isEmployeeSelf ? "lg:col-span-2 space-y-6" : "space-y-6"}>
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">Leave requests</h2>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                Leave requests
+              </h2>
+              <Button asChild variant="ghost" size="sm" className="gap-1 text-indigo-600">
+                <Link href="/hr/leaves">
+                  View all
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
             <div className="mb-3 flex flex-wrap gap-2 text-xs text-slate-600">
               <span className="rounded-full bg-indigo-50 px-2.5 py-1">Annual</span>
               <span className="rounded-full bg-sky-50 px-2.5 py-1">Casual</span>
@@ -295,7 +307,7 @@ export function HrPanel({ selfOnly = false }: { selfOnly?: boolean }) {
               <p className="text-sm text-slate-500">No leave requests yet.</p>
             ) : (
               <ul className="space-y-2">
-                {leavesPagination.pageItems.map((leave) => (
+                {leavePreview.map((leave) => (
                   <li key={leave.id} className="rounded-xl border border-slate-200 px-3 py-2.5">
                     <div className="flex items-start justify-between gap-2">
                       <div>
@@ -303,14 +315,18 @@ export function HrPanel({ selfOnly = false }: { selfOnly?: boolean }) {
                           {leave.user_name} · {leave.leave_type_label}
                         </p>
                         <p className="text-xs text-slate-500">
-                          {format(new Date(leave.start_date), "dd MMM")} – {format(new Date(leave.end_date), "dd MMM")} ({leave.days}d)
+                          {format(new Date(leave.start_date), "dd MMM")} –{" "}
+                          {format(new Date(leave.end_date), "dd MMM")} ({leave.days}d)
                         </p>
                       </div>
                       <Badge className="capitalize">{leave.status}</Badge>
                     </div>
                     {canManage && leave.status === "pending" && (
                       <div className="mt-2 flex gap-2">
-                        <Button size="sm" onClick={() => reviewLeave.mutate({ id: leave.id, status: "approved" })}>
+                        <Button
+                          size="sm"
+                          onClick={() => reviewLeave.mutate({ id: leave.id, status: "approved" })}
+                        >
                           Approve
                         </Button>
                         <Button
@@ -326,46 +342,54 @@ export function HrPanel({ selfOnly = false }: { selfOnly?: boolean }) {
                 ))}
               </ul>
             )}
-            <PaginationBar
-              page={leavesPagination.page}
-              totalPages={leavesPagination.totalPages}
-              total={leavesPagination.total}
-              pageSize={leavesPagination.pageSize}
-              from={leavesPagination.from}
-              to={leavesPagination.to}
-              onPageChange={leavesPagination.setPage}
-              onPageSizeChange={leavesPagination.setPageSize}
-              className="mt-3 rounded-xl border border-slate-100"
-            />
+            {leaves.length > PREVIEW_LIMIT ? (
+              <p className="mt-3 text-center text-xs text-slate-500">
+                Showing {PREVIEW_LIMIT} of {leaves.length}.{" "}
+                <Link href="/hr/leaves" className="font-medium text-indigo-600 hover:underline">
+                  View all with search
+                </Link>
+              </p>
+            ) : null}
           </section>
 
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
-              <CalendarDays className="h-4 w-4" />Holiday calendar
-            </h2>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
+                <CalendarDays className="h-4 w-4" />
+                Holiday calendar
+              </h2>
+              <Button asChild variant="ghost" size="sm" className="gap-1 text-indigo-600">
+                <Link href="/hr/holidays">
+                  View all
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
             {holidays.length === 0 ? (
               <p className="text-sm text-slate-500">No holidays added.</p>
             ) : (
               <ul className="space-y-2">
-                {holidaysPagination.pageItems.map((h) => (
-                  <li key={h.id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm">
+                {holidayPreview.map((h) => (
+                  <li
+                    key={h.id}
+                    className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm"
+                  >
                     <span className="font-medium text-slate-900">{h.title}</span>
-                    <span className="text-slate-500">{format(new Date(h.holiday_date), "dd MMM yyyy")}</span>
+                    <span className="text-slate-500">
+                      {format(new Date(h.holiday_date), "dd MMM yyyy")}
+                    </span>
                   </li>
                 ))}
               </ul>
             )}
-            <PaginationBar
-              page={holidaysPagination.page}
-              totalPages={holidaysPagination.totalPages}
-              total={holidaysPagination.total}
-              pageSize={holidaysPagination.pageSize}
-              from={holidaysPagination.from}
-              to={holidaysPagination.to}
-              onPageChange={holidaysPagination.setPage}
-              onPageSizeChange={holidaysPagination.setPageSize}
-              className="mt-3 rounded-xl border border-slate-100"
-            />
+            {holidays.length > PREVIEW_LIMIT ? (
+              <p className="mt-3 text-center text-xs text-slate-500">
+                Showing {PREVIEW_LIMIT} of {holidays.length}.{" "}
+                <Link href="/hr/holidays" className="font-medium text-indigo-600 hover:underline">
+                  View all with search
+                </Link>
+              </p>
+            ) : null}
           </section>
         </div>
       </div>

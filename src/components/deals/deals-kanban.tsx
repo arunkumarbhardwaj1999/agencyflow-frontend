@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { KanbanColumnScroll } from "@/components/ui/kanban-column-scroll";
+import { StageFilterTabs } from "@/components/ui/stage-filter-tabs";
 import { DealFormDialog } from "./deal-form-dialog";
 
 const STAGE_DOT: Record<string, string> = {
@@ -308,16 +309,16 @@ export function DealsKanban() {
         </div>
       </div>
 
-      <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
-        <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
+      <div className="mb-4 space-y-3 rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <Input
-            className="w-full lg:max-w-xs"
+            className="w-full sm:max-w-xs"
             placeholder="Search title, company, email…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           <Select
-            className="w-full lg:w-48"
+            className="w-full sm:w-48"
             value={assigneeFilter}
             onChange={(e) => setAssigneeFilter(e.target.value)}
           >
@@ -326,41 +327,22 @@ export function DealsKanban() {
               <option key={m.id} value={m.id}>{m.name}</option>
             ))}
           </Select>
-          <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
-            {DEAL_STAGES.map((col) => {
-              const active = activeStages.includes(col.id);
-              const count = filteredColumns.find((c) => c.stage === col.id)?.deals.length ?? 0;
-              return (
-                <button
-                  key={col.id}
-                  type="button"
-                  onClick={() => toggleStage(col.id)}
-                  className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                    active
-                      ? "border-indigo-200 bg-indigo-50 text-indigo-700"
-                      : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
-                  }`}
-                >
-                  {col.title}
-                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600">{count}</span>
-                </button>
-              );
-            })}
-            {(search || assigneeFilter || activeStages.length !== DEAL_STAGES.length) && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSearch("");
-                  setAssigneeFilter("");
-                  setActiveStages(DEAL_STAGES.map((col) => col.id));
-                }}
-              >
-                Reset
-              </Button>
-            )}
-          </div>
         </div>
+        <StageFilterTabs
+          stages={DEAL_STAGES.map((col) => ({
+            id: col.id,
+            title: col.title,
+            count: filteredColumns.find((c) => c.stage === col.id)?.deals.length ?? 0,
+          }))}
+          activeIds={activeStages}
+          onToggle={toggleStage}
+          showReset={!!(search || assigneeFilter || activeStages.length !== DEAL_STAGES.length)}
+          onReset={() => {
+            setSearch("");
+            setAssigneeFilter("");
+            setActiveStages(DEAL_STAGES.map((col) => col.id));
+          }}
+        />
       </div>
 
       {(moveMutation.isError || winMutation.isError || deleteMutation.isError) && (

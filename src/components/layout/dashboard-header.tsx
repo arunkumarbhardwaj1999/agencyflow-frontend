@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Bell, Menu, Plus, Settings, Volume2, VolumeX, Monitor } from "lucide-react";
+import { Bell, Menu, Settings, Volume2, VolumeX, Monitor } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { Button } from "@/components/ui/button";
 import { useRealtime } from "@/providers/realtime-provider";
 import { useNotificationStore } from "@/stores/notification-store";
 import { useAuthStore } from "@/stores/auth-store";
@@ -14,12 +13,10 @@ import { ProfileMenu } from "./profile-menu";
 export function DashboardHeader({
   title,
   subtitle,
-  showNewLead = false,
   onMenuClick,
 }: {
   title: string;
   subtitle?: string;
-  showNewLead?: boolean;
   onMenuClick?: () => void;
 }) {
   const { events, status, unread, markRead } = useRealtime();
@@ -173,14 +170,6 @@ export function DashboardHeader({
             title="Integrations (Email)"
           >
             <Settings className="h-4 w-4" />
-          </Link>
-        )}
-        {showNewLead && (
-          <Link href="/leads">
-            <Button className="h-10 gap-2 px-3 sm:px-4">
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">New lead</span>
-            </Button>
           </Link>
         )}
         <ProfileMenu />

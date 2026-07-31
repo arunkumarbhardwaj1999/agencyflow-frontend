@@ -20,12 +20,13 @@ import { apiFetch } from "@/lib/api";
 import { LEAD_COLUMNS, type Lead, type Member } from "@/lib/types";
 import { useMembers } from "@/lib/use-members";
 import { formatCurrency } from "@/lib/utils";
-import { Plus, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { KanbanColumnScroll } from "@/components/ui/kanban-column-scroll";
+import { StageFilterTabs } from "@/components/ui/stage-filter-tabs";
 import { LeadFormDialog } from "./lead-form-dialog";
 import { AIResultModal } from "@/components/ai/ai-result-modal";
 import { FEATURES } from "@/lib/feature-flags";
@@ -306,19 +307,15 @@ export function LeadsKanban() {
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
-        {FEATURES.ai && (
+      {FEATURES.ai ? (
+        <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
           <Button variant="outline" onClick={() => setFollowupsOpen(true)} className="gap-2">
             <Sparkles className="h-4 w-4" />
             <span className="hidden sm:inline">AI follow-ups</span>
             <span className="sm:hidden">AI</span>
           </Button>
-        )}
-        <Button onClick={() => { setEditingLead(null); setFormOpen(true); }} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add lead
-        </Button>
-      </div>
+        </div>
+      ) : null}
 
       <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
@@ -348,16 +345,16 @@ export function LeadsKanban() {
         </div>
       </div>
 
-      <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
-        <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
+      <div className="mb-4 space-y-3 rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <Input
-            className="w-full lg:max-w-xs"
+            className="w-full sm:max-w-xs"
             placeholder="Search name, company, email…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           <Select
-            className="w-full lg:w-48"
+            className="w-full sm:w-48"
             value={assigneeFilter}
             onChange={(e) => setAssigneeFilter(e.target.value)}
           >
@@ -368,50 +365,34 @@ export function LeadsKanban() {
               </option>
             ))}
           </Select>
-          <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm whitespace-nowrap">
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600 whitespace-nowrap">
             <input
               type="checkbox"
+              className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
               checked={onlyDueFollowups}
               onChange={(e) => setOnlyDueFollowups(e.target.checked)}
             />
             Due follow-ups only
           </label>
-          <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
-            {LEAD_COLUMNS.map((col) => {
-              const active = activeStages.includes(col.id);
-              const count = filteredLeads.filter((lead) => lead.status === col.id).length;
-              return (
-                <button
-                  key={col.id}
-                  type="button"
-                  onClick={() => toggleStage(col.id)}
-                  className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                    active
-                      ? "border-indigo-200 bg-indigo-50 text-indigo-700"
-                      : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
-                  }`}
-                >
-                  {col.title}
-                  <Badge variant="secondary">{count}</Badge>
-                </button>
-              );
-            })}
-            {(search || assigneeFilter || onlyDueFollowups || activeStages.length !== LEAD_COLUMNS.length) && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSearch("");
-                  setAssigneeFilter("");
-                  setOnlyDueFollowups(false);
-                  setActiveStages(LEAD_COLUMNS.map((col) => col.id));
-                }}
-              >
-                Reset
-              </Button>
-            )}
-          </div>
         </div>
+        <StageFilterTabs
+          stages={LEAD_COLUMNS.map((col) => ({
+            id: col.id,
+            title: col.title,
+            count: filteredLeads.filter((lead) => lead.status === col.id).length,
+          }))}
+          activeIds={activeStages}
+          onToggle={toggleStage}
+          showReset={
+            !!(search || assigneeFilter || onlyDueFollowups || activeStages.length !== LEAD_COLUMNS.length)
+          }
+          onReset={() => {
+            setSearch("");
+            setAssigneeFilter("");
+            setOnlyDueFollowups(false);
+            setActiveStages(LEAD_COLUMNS.map((col) => col.id));
+          }}
+        />
       </div>
 
       {(updateMutation.isError || convertMutation.isError || deleteMutation.isError) && (
