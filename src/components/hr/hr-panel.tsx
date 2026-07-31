@@ -237,9 +237,18 @@ export function HrPanel({ selfOnly = false }: { selfOnly?: boolean }) {
       <div className="grid gap-6 lg:grid-cols-2">
         {!isEmployeeSelf && (
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
-            <UserRound className="h-4 w-4" />Employees
-          </h2>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
+              <UserRound className="h-4 w-4" />
+              Employees
+            </h2>
+            <Button asChild variant="ghost" size="sm" className="gap-1 text-indigo-600">
+              <Link href="/team">
+                View all
+                <ChevronRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
           {isLoading ? (
             <p className="text-sm text-slate-500">Loading…</p>
           ) : (

@@ -305,7 +305,7 @@ export function ClientsPanel() {
             to={pagination.to}
             onPageChange={pagination.setPage}
             onPageSizeChange={pagination.setPageSize}
-            className="mt-4 rounded-xl border border-slate-100"
+            className="mt-5"
           />
         </>
       )}
