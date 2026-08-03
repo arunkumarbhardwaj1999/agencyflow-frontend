@@ -8,6 +8,7 @@ import { ArrowLeft, Plus } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import type { LeaveRequest } from "@/lib/types";
 import { useAuthStore } from "@/stores/auth-store";
+import { toast } from "@/stores/toast-store";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,7 +81,9 @@ export function HrLeavesPanel() {
       setLeaveOpen(false);
       setReason("");
       invalidate();
+      toast("Leave request submitted.", "success");
     },
+    onError: (err) => toast((err as Error).message, "error"),
   });
 
   const reviewLeave = useMutation({
@@ -89,7 +92,11 @@ export function HrLeavesPanel() {
         method: "PATCH",
         body: JSON.stringify({ status }),
       }),
-    onSuccess: invalidate,
+    onSuccess: (_data, vars) => {
+      invalidate();
+      toast(vars.status === "approved" ? "Leave approved." : "Leave rejected.", "success");
+    },
+    onError: (err) => toast((err as Error).message, "error"),
   });
 
   return (

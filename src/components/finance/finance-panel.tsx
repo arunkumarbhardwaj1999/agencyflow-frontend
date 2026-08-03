@@ -31,6 +31,7 @@ import type {
 } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import { FEATURES } from "@/lib/feature-flags";
+import { toast } from "@/stores/toast-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -77,7 +78,6 @@ export function FinancePanel() {
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
   const [showModal, setShowModal] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
   const [waTemplate, setWaTemplate] = useState("payment_reminder");
   const [aiInvoiceId, setAiInvoiceId] = useState<string | null>(null);
 
@@ -148,13 +148,19 @@ export function FinancePanel() {
         items: [{ description: "", quantity: "1", unit_price: "" }],
       });
       setShowModal(false);
+      toast("Invoice created successfully.", "success");
     },
+    onError: (err) => toast((err as Error).message, "error"),
   });
 
   const markPaidMutation = useMutation({
     mutationFn: (id: string) =>
       apiFetch<Invoice>(`/invoices/${id}`, { method: "PATCH", body: JSON.stringify({ status: "paid" }) }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["invoices"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      toast("Invoice marked as paid.", "success");
+    },
+    onError: (err) => toast((err as Error).message, "error"),
   });
 
   const payLinkMutation = useMutation({
@@ -166,20 +172,18 @@ export function FinancePanel() {
     onSuccess: (data) => {
       window.open(data.url, "_blank", "noopener");
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      toast("Payment link opened.", "success");
     },
+    onError: (err) => toast((err as Error).message, "error"),
   });
 
   const sendMutation = useMutation({
     mutationFn: (id: string) =>
       apiFetch<MessageResponse>(`/invoices/${id}/send`, { method: "POST" }),
     onSuccess: (data) => {
-      setToast(data.message);
-      setTimeout(() => setToast(null), 5000);
+      toast(data.message || "Invoice sent successfully.", "success");
     },
-    onError: (err) => {
-      setToast((err as Error).message);
-      setTimeout(() => setToast(null), 5000);
-    },
+    onError: (err) => toast((err as Error).message, "error"),
   });
 
   const whatsappMutation = useMutation({
@@ -190,21 +194,21 @@ export function FinancePanel() {
       ),
     onSuccess: (data) => {
       const label = data.queued ? "queued" : data.status;
-      setToast(`WhatsApp ${label}: ${data.phone}`);
+      toast(`WhatsApp message ${label} for ${data.phone}.`, "success");
       queryClient.invalidateQueries({ queryKey: ["whatsapp-logs"] });
-      setTimeout(() => setToast(null), 5000);
     },
-    onError: (err) => {
-      setToast((err as Error).message);
-      setTimeout(() => setToast(null), 5000);
-    },
+    onError: (err) => toast((err as Error).message, "error"),
   });
 
   async function downloadPdf(inv: Invoice) {
-    const blob = await apiBlob(`/invoices/${inv.id}/pdf`);
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank", "noopener");
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    try {
+      const blob = await apiBlob(`/invoices/${inv.id}/pdf`);
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank", "noopener");
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (err) {
+      toast((err as Error).message, "error");
+    }
   }
 
   const totalInvoiced = invoices.reduce((s, i) => s + n(i.total), 0);
@@ -214,11 +218,6 @@ export function FinancePanel() {
 
   return (
     <div className="space-y-6">
-      {toast && (
-        <div className="fixed bottom-6 right-6 z-50 max-w-sm rounded-lg border border-indigo-100 bg-white px-4 py-3 text-sm text-slate-700 shadow-lg">
-          {toast}
-        </div>
-      )}
       <div className="flex flex-wrap items-center justify-end gap-4">
         <div className="flex flex-wrap items-center gap-2">
           {FEATURES.whatsapp && (

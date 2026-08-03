@@ -9,6 +9,7 @@ import { apiFetch } from "@/lib/api";
 import type { AttendanceLog, CompanyHoliday, HrEmployee, LeaveRequest } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
+import { toast } from "@/stores/toast-store";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -76,11 +77,19 @@ export function HrPanel({ selfOnly = false }: { selfOnly?: boolean }) {
 
   const checkIn = useMutation({
     mutationFn: () => apiFetch("/hr/attendance/check-in", { method: "POST" }),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast("Checked in successfully.", "success");
+    },
+    onError: (err) => toast((err as Error).message, "error"),
   });
   const checkOut = useMutation({
     mutationFn: () => apiFetch("/hr/attendance/check-out", { method: "POST" }),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast("Checked out successfully.", "success");
+    },
+    onError: (err) => toast((err as Error).message, "error"),
   });
   const createLeave = useMutation({
     mutationFn: () =>
@@ -97,7 +106,9 @@ export function HrPanel({ selfOnly = false }: { selfOnly?: boolean }) {
       setLeaveOpen(false);
       setReason("");
       invalidate();
+      toast("Leave request submitted.", "success");
     },
+    onError: (err) => toast((err as Error).message, "error"),
   });
   const reviewLeave = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
@@ -105,7 +116,14 @@ export function HrPanel({ selfOnly = false }: { selfOnly?: boolean }) {
         method: "PATCH",
         body: JSON.stringify({ status }),
       }),
-    onSuccess: invalidate,
+    onSuccess: (_data, vars) => {
+      invalidate();
+      toast(
+        vars.status === "approved" ? "Leave approved." : "Leave rejected.",
+        "success",
+      );
+    },
+    onError: (err) => toast((err as Error).message, "error"),
   });
   const createHoliday = useMutation({
     mutationFn: () =>
@@ -117,7 +135,9 @@ export function HrPanel({ selfOnly = false }: { selfOnly?: boolean }) {
       setHolidayOpen(false);
       setHolidayTitle("");
       invalidate();
+      toast("Holiday added.", "success");
     },
+    onError: (err) => toast((err as Error).message, "error"),
   });
   const saveProfile = useMutation({
     mutationFn: () =>
@@ -131,7 +151,9 @@ export function HrPanel({ selfOnly = false }: { selfOnly?: boolean }) {
     onSuccess: () => {
       setSelected(null);
       invalidate();
+      toast("Employee profile updated.", "success");
     },
+    onError: (err) => toast((err as Error).message, "error"),
   });
 
   const me = employees.find((e) => e.email === user?.email) ?? employees[0];

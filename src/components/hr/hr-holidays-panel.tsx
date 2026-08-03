@@ -8,6 +8,7 @@ import { ArrowLeft, CalendarDays, Plus, Trash2 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import type { CompanyHoliday } from "@/lib/types";
 import { useAuthStore } from "@/stores/auth-store";
+import { toast } from "@/stores/toast-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,12 +54,18 @@ export function HrHolidaysPanel() {
       setHolidayOpen(false);
       setHolidayTitle("");
       invalidate();
+      toast("Holiday added.", "success");
     },
+    onError: (err) => toast((err as Error).message, "error"),
   });
 
   const deleteHoliday = useMutation({
     mutationFn: (id: string) => apiFetch(`/hr/holidays/${id}`, { method: "DELETE" }),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast("Holiday removed.", "success");
+    },
+    onError: (err) => toast((err as Error).message, "error"),
   });
 
   return (

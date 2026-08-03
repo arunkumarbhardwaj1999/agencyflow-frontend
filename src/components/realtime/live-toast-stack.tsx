@@ -10,7 +10,10 @@ const TYPE_STYLES: Record<string, string> = {
   project: "border-l-sky-500",
   task: "border-l-amber-500",
   client: "border-l-violet-500",
+  deal: "border-l-teal-500",
 };
+
+const TOAST_MS = 5000;
 
 export function LiveToastStack({ events }: { events: DashboardLiveEvent[] }) {
   const [visible, setVisible] = useState<DashboardLiveEvent[]>([]);
@@ -18,21 +21,24 @@ export function LiveToastStack({ events }: { events: DashboardLiveEvent[] }) {
   useEffect(() => {
     if (events.length === 0) return;
     const latest = events[0];
-    setVisible((prev) => [latest, ...prev].slice(0, 4));
+    setVisible((prev) => {
+      if (prev.some((e) => e.id === latest.id)) return prev;
+      return [latest, ...prev].slice(0, 4);
+    });
     const timer = setTimeout(() => {
       setVisible((prev) => prev.filter((e) => e.id !== latest.id));
-    }, 6000);
+    }, TOAST_MS);
     return () => clearTimeout(timer);
   }, [events]);
 
   if (visible.length === 0) return null;
 
   return (
-    <div className="pointer-events-none fixed bottom-6 left-6 z-[60] flex max-w-sm flex-col gap-2">
+    <div className="pointer-events-none fixed right-4 top-4 z-[70] flex w-[min(22rem,calc(100vw-2rem))] flex-col gap-2 sm:right-6 sm:top-6">
       {visible.map((ev) => (
         <div
           key={ev.id}
-          className={`pointer-events-auto animate-fade-in rounded-lg border border-slate-200 border-l-4 bg-white px-4 py-3 text-sm shadow-lg ${TYPE_STYLES[ev.type] ?? "border-l-slate-400"}`}
+          className={`pointer-events-auto animate-fade-in rounded-xl border border-slate-200 border-l-4 bg-white px-4 py-3 text-sm shadow-[0_12px_32px_rgba(15,23,42,0.12)] ${TYPE_STYLES[ev.type] ?? "border-l-slate-400"}`}
         >
           <div className="flex items-start justify-between gap-2">
             <div>

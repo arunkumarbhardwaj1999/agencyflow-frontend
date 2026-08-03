@@ -20,6 +20,7 @@ import { useMemo, useState } from "react";
 import { format, isPast, isToday } from "date-fns";
 import { apiFetch } from "@/lib/api";
 import { TASK_COLUMNS, type Project, type Task } from "@/lib/types";
+import { toast } from "@/stores/toast-store";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { KanbanColumnScroll } from "@/components/ui/kanban-column-scroll";
@@ -191,8 +192,9 @@ export function TasksKanban() {
       );
       return { previous };
     },
-    onError: (_err, _vars, ctx) => {
+    onError: (err, _vars, ctx) => {
       if (ctx?.previous) queryClient.setQueryData(["tasks"], ctx.previous);
+      toast((err as Error).message, "error");
     },
     onSuccess: (updated) => {
       queryClient.setQueryData<Task[]>(["tasks"], (old) =>

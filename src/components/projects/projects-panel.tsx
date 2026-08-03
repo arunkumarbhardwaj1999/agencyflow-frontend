@@ -10,6 +10,7 @@ import { format, isPast } from "date-fns";
 import { apiFetch } from "@/lib/api";
 import type { Client, Member, Project, Task } from "@/lib/types";
 import { useMembers } from "@/lib/use-members";
+import { toast } from "@/stores/toast-store";
 import { Plus, FolderKanban, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -134,13 +135,19 @@ function ProjectsPanelAdmin() {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       projectForm.reset({ status: "planning", budget: "0" });
       setShowProjectModal(false);
+      toast("Project created successfully.", "success");
     },
+    onError: (err) => toast((err as Error).message, "error"),
   });
 
   const updateProject = useMutation({
     mutationFn: ({ id, patch }: { id: string; patch: Partial<Project> }) =>
       apiFetch<Project>(`/projects/${id}`, { method: "PATCH", body: JSON.stringify(patch) }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["projects"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      toast("Project updated.", "success");
+    },
+    onError: (err) => toast((err as Error).message, "error"),
   });
 
   const deleteProject = useMutation({
@@ -148,7 +155,9 @@ function ProjectsPanelAdmin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast("Project deleted.", "success");
     },
+    onError: (err) => toast((err as Error).message, "error"),
   });
 
   const createTask = useMutation({
@@ -158,7 +167,9 @@ function ProjectsPanelAdmin() {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       taskForm.reset({ priority: "medium", status: "todo" });
+      toast("Task created successfully.", "success");
     },
+    onError: (err) => toast((err as Error).message, "error"),
   });
 
   const updateTask = useMutation({
@@ -168,6 +179,7 @@ function ProjectsPanelAdmin() {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
+    onError: (err) => toast((err as Error).message, "error"),
   });
 
   const deleteTask = useMutation({
@@ -175,7 +187,9 @@ function ProjectsPanelAdmin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["projects"] });
+      toast("Task deleted.", "success");
     },
+    onError: (err) => toast((err as Error).message, "error"),
   });
 
   return (

@@ -8,6 +8,7 @@ import { Play, Square } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import type { ActiveTimer, Task, TimeEntry, UserTimeSummary } from "@/lib/types";
 import { formatDurationClock } from "@/lib/time-utils";
+import { toast } from "@/stores/toast-store";
 import { EmployeeTimeSummary } from "@/components/time/employee-time-summary";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -67,12 +68,20 @@ export function TimeTrackingPanel() {
         method: "POST",
         body: JSON.stringify({ task_id: id }),
       }),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast("Timer started.", "success");
+    },
+    onError: (err) => toast((err as Error).message, "error"),
   });
 
   const stopMutation = useMutation({
     mutationFn: () => apiFetch("/time/timer/stop", { method: "POST" }),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast("Timer stopped.", "success");
+    },
+    onError: (err) => toast((err as Error).message, "error"),
   });
 
   return (
