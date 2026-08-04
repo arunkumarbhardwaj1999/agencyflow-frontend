@@ -16,6 +16,7 @@ import {
   Upload,
 } from "lucide-react";
 import { apiBlob, apiFetch, apiUpload } from "@/lib/api";
+import { askConfirm } from "@/stores/confirm-store";
 import {
   CLIENT_DOCUMENT_FOLDERS,
   type ClientDocument,
@@ -314,7 +315,15 @@ export function ClientDocuments({ clientId }: { clientId: string }) {
                             variant="ghost"
                             className="text-red-600 hover:text-red-700"
                             onClick={() => {
-                              if (confirm(`Delete ${doc.filename}?`)) deleteMutation.mutate(doc.id);
+                              void (async () => {
+                                const ok = await askConfirm({
+                                  title: "Delete document?",
+                                  description: `Delete “${doc.filename}”? This cannot be undone.`,
+                                  confirmLabel: "Delete",
+                                  variant: "danger",
+                                });
+                                if (ok) deleteMutation.mutate(doc.id);
+                              })();
                             }}
                             title="Delete"
                           >

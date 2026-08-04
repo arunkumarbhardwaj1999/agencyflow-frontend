@@ -16,6 +16,7 @@ import { DealFormDialog } from "@/components/deals/deal-form-dialog";
 import { DealNotes } from "@/components/deals/deal-notes";
 import { Record360Panel } from "@/components/record-360/record-360-panel";
 import { DealTimeline } from "@/components/deals/deal-timeline";
+import { askConfirm } from "@/stores/confirm-store";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -110,7 +111,21 @@ export function DealDetailView({ dealId }: { dealId: string }) {
             <Link href={`/proposals/new?deal_id=${dealId}`}>Create proposal</Link>
           </Button>
           {!isClosed && (
-            <Button size="sm" onClick={() => { if (confirm("Mark as won and create client?")) winMutation.mutate(); }} disabled={winMutation.isPending}>
+            <Button
+              size="sm"
+              onClick={() => {
+                void (async () => {
+                  const ok = await askConfirm({
+                    title: "Mark deal as won?",
+                    description: "This will mark the deal as won and create a client record.",
+                    confirmLabel: "Win deal",
+                    variant: "success",
+                  });
+                  if (ok) winMutation.mutate();
+                })();
+              }}
+              disabled={winMutation.isPending}
+            >
               <Trophy className="mr-1 h-4 w-4" />Win deal
             </Button>
           )}

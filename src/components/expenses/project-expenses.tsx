@@ -15,6 +15,7 @@ import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
 import { PaginationBar } from "@/components/ui/pagination-bar";
 import { useClientPagination } from "@/hooks/use-client-pagination";
+import { askConfirm } from "@/stores/confirm-store";
 
 const CHART_COLORS = ["#6366f1", "#0ea5e9", "#f59e0b", "#10b981", "#f43f5e", "#a855f7", "#64748b"];
 
@@ -118,7 +119,15 @@ export function ProjectExpenses({ projectId }: { projectId: string }) {
                 variant="ghost"
                 className="text-red-600"
                 onClick={() => {
-                  if (confirm(`Delete ${e.title}?`)) deleteMutation.mutate(e.id);
+                  void (async () => {
+                    const ok = await askConfirm({
+                      title: "Delete expense?",
+                      description: `Delete “${e.title}”? This cannot be undone.`,
+                      confirmLabel: "Delete expense",
+                      variant: "danger",
+                    });
+                    if (ok) deleteMutation.mutate(e.id);
+                  })();
                 }}
               >
                 <Trash2 className="h-4 w-4" />

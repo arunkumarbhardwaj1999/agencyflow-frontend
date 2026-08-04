@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { Download, Eye, FileText, Image as ImageIcon, Pencil, Trash2, Upload } from "lucide-react";
 import { apiBlob, apiFetch, apiUpload } from "@/lib/api";
 import type { DealAttachment } from "@/lib/types";
+import { askConfirm } from "@/stores/confirm-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
@@ -131,7 +132,24 @@ export function DealAttachments({
                   {att.is_previewable && <Button size="sm" variant="ghost" onClick={() => handlePreview(att)}><Eye className="h-4 w-4" /></Button>}
                   <Button size="sm" variant="ghost" onClick={() => handleDownload(att)}><Download className="h-4 w-4" /></Button>
                   <Button size="sm" variant="ghost" onClick={() => { setRenaming(att); setNewName(att.filename); }}><Pencil className="h-4 w-4" /></Button>
-                  <Button size="sm" variant="ghost" className="text-red-600" onClick={() => { if (confirm(`Delete ${att.filename}?`)) deleteMutation.mutate(att.id); }}><Trash2 className="h-4 w-4" /></Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-red-600"
+                    onClick={() => {
+                      void (async () => {
+                        const ok = await askConfirm({
+                          title: "Delete attachment?",
+                          description: `Delete “${att.filename}”? This cannot be undone.`,
+                          confirmLabel: "Delete",
+                          variant: "danger",
+                        });
+                        if (ok) deleteMutation.mutate(att.id);
+                      })();
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </li>
             );

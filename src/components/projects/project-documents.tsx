@@ -8,6 +8,7 @@ import type { DocumentMeta } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { PaginationBar } from "@/components/ui/pagination-bar";
 import { useClientPagination } from "@/hooks/use-client-pagination";
+import { askConfirm } from "@/stores/confirm-store";
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -112,7 +113,15 @@ export function ProjectDocuments({ projectId }: { projectId: string }) {
               <button
                 type="button"
                 onClick={() => {
-                  if (confirm(`Delete "${doc.filename}"?`)) deleteMutation.mutate(doc.id);
+                  void (async () => {
+                    const ok = await askConfirm({
+                      title: "Delete document?",
+                      description: `Delete “${doc.filename}”? This cannot be undone.`,
+                      confirmLabel: "Delete",
+                      variant: "danger",
+                    });
+                    if (ok) deleteMutation.mutate(doc.id);
+                  })();
                 }}
                 className="rounded p-1.5 text-slate-500 transition hover:bg-white hover:text-rose-500"
                 title="Delete"

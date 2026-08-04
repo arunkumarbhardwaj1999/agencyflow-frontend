@@ -30,6 +30,7 @@ import { StageFilterTabs } from "@/components/ui/stage-filter-tabs";
 import { LeadFormDialog } from "./lead-form-dialog";
 import { AIResultModal } from "@/components/ai/ai-result-modal";
 import { FEATURES } from "@/lib/feature-flags";
+import { askConfirm } from "@/stores/confirm-store";
 
 function followupLabel(iso: string | null): { text: string; className: string } | null {
   if (!iso) return null;
@@ -429,7 +430,15 @@ export function LeadsKanban() {
                 onConvertLead={(lead) => convertMutation.mutate(lead.id)}
                 onEditLead={(lead) => { setEditingLead(lead); setFormOpen(true); }}
                 onDeleteLead={(lead) => {
-                  if (confirm(`Delete lead "${lead.name}"?`)) deleteMutation.mutate(lead.id);
+                  void (async () => {
+                    const ok = await askConfirm({
+                      title: "Delete lead?",
+                      description: `Delete “${lead.name}”? This cannot be undone.`,
+                      confirmLabel: "Delete lead",
+                      variant: "danger",
+                    });
+                    if (ok) deleteMutation.mutate(lead.id);
+                  })();
                 }}
                 onAILead={(lead) => setAiLeadId(lead.id)}
               />

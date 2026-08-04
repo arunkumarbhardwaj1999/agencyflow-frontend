@@ -11,6 +11,7 @@ import { apiFetch } from "@/lib/api";
 import type { Client, Member, Project, Task } from "@/lib/types";
 import { useMembers } from "@/lib/use-members";
 import { toast } from "@/stores/toast-store";
+import { askConfirm } from "@/stores/confirm-store";
 import { Plus, FolderKanban, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -301,7 +302,15 @@ function ProjectsPanelAdmin() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        if (confirm(`Delete project "${p.title}" and its tasks?`)) deleteProject.mutate(p.id);
+                        void (async () => {
+                          const ok = await askConfirm({
+                            title: "Delete project?",
+                            description: `Delete “${p.title}” and its tasks? This cannot be undone.`,
+                            confirmLabel: "Delete project",
+                            variant: "danger",
+                          });
+                          if (ok) deleteProject.mutate(p.id);
+                        })();
                       }}
                     >
                       Delete
@@ -418,7 +427,15 @@ function ProjectsPanelAdmin() {
                               <button
                                 type="button"
                                 onClick={() => {
-                                  if (confirm("Delete this task?")) deleteTask.mutate(t.id);
+                                  void (async () => {
+                                    const ok = await askConfirm({
+                                      title: "Delete task?",
+                                      description: "Delete this task? This cannot be undone.",
+                                      confirmLabel: "Delete task",
+                                      variant: "danger",
+                                    });
+                                    if (ok) deleteTask.mutate(t.id);
+                                  })();
                                 }}
                                 className="text-xs text-red-500 hover:underline"
                               >

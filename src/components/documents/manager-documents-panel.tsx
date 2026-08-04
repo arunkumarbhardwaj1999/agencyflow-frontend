@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { PaginationBar } from "@/components/ui/pagination-bar";
 import { useClientPagination } from "@/hooks/use-client-pagination";
+import { askConfirm } from "@/stores/confirm-store";
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -171,7 +172,15 @@ export function ManagerDocumentsPanel() {
                     size="sm"
                     variant="outline"
                     onClick={() => {
-                      if (confirm(`Delete ${doc.filename}?`)) deleteMutation.mutate(doc.id);
+                      void (async () => {
+                        const ok = await askConfirm({
+                          title: "Delete document?",
+                          description: `Delete “${doc.filename}”? This cannot be undone.`,
+                          confirmLabel: "Delete",
+                          variant: "danger",
+                        });
+                        if (ok) deleteMutation.mutate(doc.id);
+                      })();
                     }}
                   >
                     <Trash2 className="h-3.5 w-3.5 text-rose-500" />

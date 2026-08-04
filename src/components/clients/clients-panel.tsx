@@ -21,6 +21,7 @@ import { Reveal } from "@/components/ui/reveal";
 import { Modal } from "@/components/ui/modal";
 import { AIResultModal } from "@/components/ai/ai-result-modal";
 import { FEATURES } from "@/lib/feature-flags";
+import { askConfirm } from "@/stores/confirm-store";
 import { PaginationBar } from "@/components/ui/pagination-bar";
 import { useClientPagination } from "@/hooks/use-client-pagination";
 
@@ -282,7 +283,15 @@ export function ClientsPanel() {
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          if (confirm("Delete this client?")) deleteMutation.mutate(c.id);
+                          void (async () => {
+                            const ok = await askConfirm({
+                              title: "Delete client?",
+                              description: "Delete this client? This cannot be undone.",
+                              confirmLabel: "Delete client",
+                              variant: "danger",
+                            });
+                            if (ok) deleteMutation.mutate(c.id);
+                          })();
                         }}
                       >
                         Delete

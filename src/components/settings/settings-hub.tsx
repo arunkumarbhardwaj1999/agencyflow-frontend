@@ -6,7 +6,6 @@ import {
   KeyRound,
   Plug,
   UserCog,
-  Workflow,
 } from "lucide-react";
 import { usePasswordChange } from "@/components/auth/password-change-context";
 import { Button } from "@/components/ui/button";
@@ -30,12 +29,6 @@ const links = [
     title: "Team & hiring",
     description: "Invite managers, employees, and clients to the workspace.",
     icon: UserCog,
-  },
-  {
-    href: "/automations",
-    title: "Automation",
-    description: "Build workflows for leads, deals, projects, and invoices.",
-    icon: Workflow,
   },
 ];
 

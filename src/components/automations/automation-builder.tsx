@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { ArrowDown, ArrowUp, Plus, Power, Trash2, Workflow, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
+import { askConfirm } from "@/stores/confirm-store";
 import type {
   Automation,
   AutomationActionBlock,
@@ -246,7 +247,15 @@ export function AutomationBuilder({ automationId }: { automationId?: string }) {
                 variant="outline"
                 className="text-red-600"
                 onClick={() => {
-                  if (confirm("Delete this automation?")) deleteMutation.mutate();
+                  void (async () => {
+                    const ok = await askConfirm({
+                      title: "Delete automation?",
+                      description: "Delete this automation? This cannot be undone.",
+                      confirmLabel: "Delete automation",
+                      variant: "danger",
+                    });
+                    if (ok) deleteMutation.mutate();
+                  })();
                 }}
               >
                 <Trash2 className="mr-1 h-4 w-4" />Delete

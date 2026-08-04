@@ -28,6 +28,7 @@ import { Select } from "@/components/ui/select";
 import { KanbanColumnScroll } from "@/components/ui/kanban-column-scroll";
 import { StageFilterTabs } from "@/components/ui/stage-filter-tabs";
 import { DealFormDialog } from "./deal-form-dialog";
+import { askConfirm } from "@/stores/confirm-store";
 
 const STAGE_DOT: Record<string, string> = {
   qualification: "bg-indigo-500",
@@ -370,12 +371,26 @@ export function DealsKanban() {
                   memberMap={memberMap}
                   onEditDeal={(deal) => { setEditingDeal(deal); setFormOpen(true); }}
                   onDeleteDeal={(deal) => {
-                    if (confirm(`Delete deal "${deal.title}"?`)) deleteMutation.mutate(deal.id);
+                    void (async () => {
+                      const ok = await askConfirm({
+                        title: "Delete deal?",
+                        description: `Delete “${deal.title}”? This cannot be undone.`,
+                        confirmLabel: "Delete deal",
+                        variant: "danger",
+                      });
+                      if (ok) deleteMutation.mutate(deal.id);
+                    })();
                   }}
                   onWinDeal={(deal) => {
-                    if (confirm(`Mark "${deal.title}" as won and create client?`)) {
-                      winMutation.mutate(deal.id);
-                    }
+                    void (async () => {
+                      const ok = await askConfirm({
+                        title: "Mark deal as won?",
+                        description: `Mark “${deal.title}” as won and create a client record?`,
+                        confirmLabel: "Win deal",
+                        variant: "success",
+                      });
+                      if (ok) winMutation.mutate(deal.id);
+                    })();
                   }}
                 />
               ))}

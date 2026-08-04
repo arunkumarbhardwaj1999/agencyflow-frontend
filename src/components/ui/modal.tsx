@@ -60,14 +60,14 @@ export function Modal({
 
   return (
     <div
-      className="animate-overlay-in fixed inset-0 z-50 flex items-end justify-center bg-slate-900/60 p-0 backdrop-blur-sm sm:items-center sm:p-4"
+      className="animate-overlay-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm"
       onClick={closable ? onClose : undefined}
       role="dialog"
       aria-modal="true"
     >
       <div
         className={cn(
-          "animate-scale-in flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl border border-slate-100 bg-white shadow-2xl sm:max-h-[88vh] sm:rounded-2xl",
+          "animate-scale-in flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl",
           sizeMap[size],
         )}
         onClick={(e) => e.stopPropagation()}

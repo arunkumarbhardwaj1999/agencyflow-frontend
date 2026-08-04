@@ -9,6 +9,7 @@ import { apiFetch } from "@/lib/api";
 import type { CompanyHoliday } from "@/lib/types";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "@/stores/toast-store";
+import { askConfirm } from "@/stores/confirm-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -131,9 +132,15 @@ export function HrHolidaysPanel() {
                             variant="ghost"
                             className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
                             onClick={() => {
-                              if (confirm(`Delete holiday "${h.title}"?`)) {
-                                deleteHoliday.mutate(h.id);
-                              }
+                              void (async () => {
+                                const ok = await askConfirm({
+                                  title: "Delete holiday?",
+                                  description: `Delete “${h.title}”? This cannot be undone.`,
+                                  confirmLabel: "Delete holiday",
+                                  variant: "danger",
+                                });
+                                if (ok) deleteHoliday.mutate(h.id);
+                              })();
                             }}
                           >
                             <Trash2 className="h-4 w-4" />

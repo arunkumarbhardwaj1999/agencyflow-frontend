@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { AppToastStack } from "@/components/ui/app-toast-stack";
+import { ConfirmDialogHost } from "@/components/ui/confirm-dialog";
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [client] = useState(
@@ -17,6 +18,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={client}>
       {children}
       <AppToastStack />
+      <ConfirmDialogHost />
     </QueryClientProvider>
   );
 }
