@@ -20,7 +20,7 @@ import { apiFetch } from "@/lib/api";
 import { LEAD_COLUMNS, type Lead, type Member } from "@/lib/types";
 import { useMembers } from "@/lib/use-members";
 import { formatCurrency } from "@/lib/utils";
-import { Sparkles } from "lucide-react";
+import { Plus, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -307,15 +307,25 @@ export function LeadsKanban() {
 
   return (
     <div>
-      {FEATURES.ai ? (
-        <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
+      <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
+        {FEATURES.ai ? (
           <Button variant="outline" onClick={() => setFollowupsOpen(true)} className="gap-2">
             <Sparkles className="h-4 w-4" />
             <span className="hidden sm:inline">AI follow-ups</span>
             <span className="sm:hidden">AI</span>
           </Button>
-        </div>
-      ) : null}
+        ) : null}
+        <Button
+          onClick={() => {
+            setEditingLead(null);
+            setFormOpen(true);
+          }}
+          className="gap-2"
+        >
+          <Plus className="h-4 w-4" />
+          New lead
+        </Button>
+      </div>
 
       <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">

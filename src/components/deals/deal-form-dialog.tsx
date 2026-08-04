@@ -26,7 +26,6 @@ const schema = z.object({
   probability: z.string().optional(),
   expected_close_date: z.string().optional(),
   status: z.string().optional(),
-  source: z.string().optional(),
   notes: z.string().optional(),
   assigned_user_id: z.string().optional(),
 });
@@ -67,7 +66,6 @@ export function DealFormDialog({
         probability: deal ? String(deal.probability) : "25",
         expected_close_date: deal?.expected_close_date ?? "",
         status: deal?.status ?? "qualification",
-        source: deal?.source ?? "",
         notes: deal?.notes ?? "",
         assigned_user_id: deal?.assigned_user_id ?? "",
       });
@@ -89,7 +87,7 @@ export function DealFormDialog({
         probability: probability ?? undefined,
         expected_close_date: data.expected_close_date || null,
         status: data.status || "qualification",
-        source: data.source || null,
+        source: deal?.source ?? null,
         notes: data.notes || null,
         assigned_user_id: data.assigned_user_id || null,
         lead_id: leadId ?? deal?.lead_id ?? null,
@@ -170,7 +168,7 @@ export function DealFormDialog({
             ))}
           </Select>
         </div>
-        <div>
+        <div className="sm:col-span-2">
           <Label>Assign to</Label>
           <Select {...register("assigned_user_id")}>
             <option value="">Unassigned</option>
@@ -178,10 +176,6 @@ export function DealFormDialog({
               <option key={m.id} value={m.id}>{m.name} ({m.role})</option>
             ))}
           </Select>
-        </div>
-        <div className="sm:col-span-2">
-          <Label>Source</Label>
-          <Input {...register("source")} placeholder="referral, inbound…" />
         </div>
         <div className="sm:col-span-2">
           <Label>Notes</Label>
