@@ -23,7 +23,6 @@ const schema = z.object({
   email: z.string().email().optional().or(z.literal("")),
   phone: z.string().optional(),
   company_name: z.string().optional(),
-  source: z.string().optional(),
   value: z.string().min(1, "Enter amount"),
   notes: z.string().optional(),
   next_followup: z.string().optional(),
@@ -40,7 +39,7 @@ function toLocalInput(iso: string | null): string {
   return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16);
 }
 
-function buildPayload(data: FormData) {
+function buildPayload(data: FormData, existingSource?: string | null) {
   const value = parseFloat(data.value);
   if (Number.isNaN(value) || value < 0) {
     throw new Error("Enter a valid amount");
@@ -49,6 +48,7 @@ function buildPayload(data: FormData) {
     ...data,
     value,
     email: data.email || null,
+    source: existingSource ?? null,
     assigned_user_id: data.assigned_user_id || null,
     next_followup: data.next_followup ? new Date(data.next_followup).toISOString() : null,
   };
@@ -93,7 +93,6 @@ export function LeadFormDialog({
         email: lead?.email ?? "",
         phone: lead?.phone ?? "",
         company_name: lead?.company_name ?? "",
-        source: lead?.source ?? "",
         value: lead ? String(lead.value) : "0",
         notes: lead?.notes ?? "",
         next_followup: toLocalInput(lead?.next_followup ?? null),
@@ -106,7 +105,10 @@ export function LeadFormDialog({
   }, [open, lead, reset]);
 
   const saveLead = async (data: FormData, ignoreDuplicates: boolean) => {
-    const payload = { ...buildPayload(data), ignore_duplicates: ignoreDuplicates };
+    const payload = {
+      ...buildPayload(data, lead?.source ?? null),
+      ignore_duplicates: ignoreDuplicates,
+    };
     if (isEdit && lead) {
       return apiFetch<Lead>(`/leads/${lead.id}`, { method: "PATCH", body: JSON.stringify(payload) });
     }
@@ -233,15 +235,11 @@ export function LeadFormDialog({
             <Input {...register("company_name")} />
           </div>
           <div>
-            <Label>Source</Label>
-            <Input {...register("source")} placeholder="referral, website…" />
-          </div>
-          <div>
             <Label>Value (₹)</Label>
             <Input type="number" step="0.01" {...register("value")} placeholder="0" />
             {errors.value && <p className="mt-1 text-xs text-rose-500">{errors.value.message}</p>}
           </div>
-          <div>
+          <div className="sm:col-span-2">
             <Label>Assign to</Label>
             <Select {...register("assigned_user_id")}>
               <option value="">Unassigned</option>
